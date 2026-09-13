@@ -10,11 +10,11 @@ import (
 )
 
 type Deps struct {
-	IDs       model.IDGenerator // required — the module never builds its own
-	Publisher events.Publisher  // optional — nil disables publishing silently
-	// ValidateRUT normalises and validates a RUT, returning the canonical form.
-	// Required. Injected, never imported: this module must not depend on any
-	// particular RUT implementation, and must not ship its own check digit.
+	IDs       model.IDGenerator // requerido — el módulo nunca genera los suyos propios
+	Publisher events.Publisher  // opcional — nil deshabilita la publicación silenciosamente
+	// ValidateRUT normaliza y valida un RUT, retornando la forma canónica.
+	// Requerido. Inyectado, nunca importado: este módulo no debe depender de ninguna
+	// implementación particular de RUT, ni incluir su propio cálculo de dígito verificador.
 	ValidateRUT func(string) (string, error)
 }
 
@@ -25,8 +25,8 @@ type Module struct {
 	validateRUT func(string) (string, error)
 }
 
-// New connects the module to an already-connected *orm.DB; the schema is
-// assumed to already exist — see the migrate subpackage.
+// New conecta el módulo a un *orm.DB ya conectado; se asume que el esquema
+// ya existe —consulte el submódulo migrate.
 func New(db *orm.DB, deps Deps) (*Module, error) {
 	if deps.IDs == nil {
 		return nil, fmt.Err("patient_directory: Deps.IDs is required")
@@ -74,7 +74,7 @@ func (m *Module) CreatePatient(p Patient) (Patient, error) {
 	}
 	p.Rut = normRut
 
-	// Check if RUT already exists for this tenant
+	// Verificar si el RUT ya existe para este tenant
 	existing, err := m.FindByRut(p.TenantId, p.Rut)
 	if err == nil && existing.Id != "" {
 		return Patient{}, ErrRutAlreadyExists
@@ -109,7 +109,7 @@ func (m *Module) UpdatePatient(p Patient) (Patient, error) {
 		return Patient{}, ValidationError{Err: ErrNameRequired}
 	}
 
-	// Verify existing patient exists in tenant
+	// Verificar que el paciente existente pertenezca al tenant
 	curr, err := m.GetPatient(p.TenantId, p.Id)
 	if err != nil {
 		return Patient{}, err
@@ -121,7 +121,7 @@ func (m *Module) UpdatePatient(p Patient) (Patient, error) {
 	}
 	p.Rut = normRut
 
-	// If RUT changed, check duplicate
+	// Si el RUT cambió, verificar duplicados
 	if normRut != curr.Rut {
 		existing, err := m.FindByRut(p.TenantId, normRut)
 		if err == nil && existing.Id != "" && existing.Id != p.Id {
@@ -223,19 +223,19 @@ func (m *Module) DeactivatePatient(tenantID, id string) error {
 	return nil
 }
 
-// ClientExists reports whether a patient with this id belongs to this tenant.
-// It satisfies the narrow DirectoryReader port that a scheduling module
-// declares on its own side (ClientExists(tenantId, clientId) (bool, error)) —
-// structurally, with no adapter and no import in either direction.
+// ClientExists informa si un paciente con este ID pertenece a este tenant.
+// Satisface el puerto estrecho DirectoryReader que un módulo de agendamiento
+// declara de su lado (ClientExists(tenantId, clientId) (bool, error)) —
+// estructuralmente, sin adaptador y sin importar en ninguna dirección.
 //
-// A missing row is (false, nil), NOT an error: "this id is not one of ours" is
-// the answer the caller asked for. Only a real storage failure returns a
-// non-nil error, so a caller can never mistake a dead database for a clean
-// "no".
+// Un registro faltante es (false, nil), NO un error: "este ID no es nuestro" es
+// la respuesta que el solicitante pidió. Solo una falla real de almacenamiento
+// retorna un error no nulo, para que un llamador nunca confunda una base de
+// datos caída con una respuesta negativa limpia.
 //
-// An INACTIVE patient still exists. Deactivation removes someone from the
-// working list; it does not unmake the person, and a reservation that
-// references them must keep resolving.
+// Un paciente INACTIVO aún existe. La desactivación remueve a alguien de la
+// lista de trabajo; no desaparece a la persona, y una reserva que lo
+// referencia debe continuar resolviendo.
 func (m *Module) ClientExists(tenantID, clientID string) (bool, error) {
 	if tenantID == "" || clientID == "" {
 		return false, nil

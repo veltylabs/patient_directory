@@ -30,10 +30,10 @@ func TestMigrate(t *testing.T) {
 
 	err := migrate.Migrate(execer, compiler)
 	if err != nil {
-		t.Fatalf("Migrate failed: %v", err)
+		t.Fatalf("Migrate falló: %v", err)
 	}
 
 	if len(execer.queries) == 0 {
-		t.Fatalf("expected queries to be executed, got 0")
+		t.Fatalf("se esperaban consultas a ejecutar, se obtuvieron 0")
 	}
 }

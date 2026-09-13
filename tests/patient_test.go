@@ -9,7 +9,7 @@ import (
 func TestCreatePatient_AssignsIDAndNormalisesRut(t *testing.T) {
 	m, pub, idGen, err := setupModule()
 	if err != nil {
-		t.Fatalf("setup failed: %v", err)
+		t.Fatalf("setup falló: %v", err)
 	}
 
 	p := patientdirectory.Patient{
@@ -21,24 +21,24 @@ func TestCreatePatient_AssignsIDAndNormalisesRut(t *testing.T) {
 
 	created, err := m.CreatePatient(p)
 	if err != nil {
-		t.Fatalf("CreatePatient failed: %v", err)
+		t.Fatalf("CreatePatient falló: %v", err)
 	}
 
 	if created.Id != "id-1" {
-		t.Errorf("expected ID 'id-1', got '%s'", created.Id)
+		t.Errorf("se esperaba ID 'id-1', se obtuvo '%s'", created.Id)
 	}
 	if created.Rut != "12345678K" {
-		t.Errorf("expected normalised RUT '12345678K', got '%s'", created.Rut)
+		t.Errorf("se esperaba RUT normalizado '12345678K', se obtuvo '%s'", created.Rut)
 	}
 	if created.UpdatedAt == 0 {
-		t.Errorf("expected UpdatedAt to be set")
+		t.Errorf("se esperaba que UpdatedAt estuviera establecido")
 	}
 
 	if len(pub.published) != 1 {
-		t.Fatalf("expected 1 event published, got %d", len(pub.published))
+		t.Fatalf("se esperaba 1 evento publicado, se obtuvo %d", len(pub.published))
 	}
 	if pub.published[0].Topic != patientdirectory.TopicPatientCreated {
-		t.Errorf("expected topic %s, got %s", patientdirectory.TopicPatientCreated, pub.published[0].Topic)
+		t.Errorf("se esperaba el topic %s, se obtuvo %s", patientdirectory.TopicPatientCreated, pub.published[0].Topic)
 	}
 	_ = idGen
 }
@@ -46,7 +46,7 @@ func TestCreatePatient_AssignsIDAndNormalisesRut(t *testing.T) {
 func TestCreatePatient_DuplicateRutSameTenant(t *testing.T) {
 	m, _, _, err := setupModule()
 	if err != nil {
-		t.Fatalf("setup failed: %v", err)
+		t.Fatalf("setup falló: %v", err)
 	}
 
 	p1 := patientdirectory.Patient{
@@ -57,7 +57,7 @@ func TestCreatePatient_DuplicateRutSameTenant(t *testing.T) {
 	}
 	_, err = m.CreatePatient(p1)
 	if err != nil {
-		t.Fatalf("CreatePatient 1 failed: %v", err)
+		t.Fatalf("CreatePatient 1 falló: %v", err)
 	}
 
 	p2 := patientdirectory.Patient{
@@ -68,14 +68,14 @@ func TestCreatePatient_DuplicateRutSameTenant(t *testing.T) {
 	}
 	_, err = m.CreatePatient(p2)
 	if err != patientdirectory.ErrRutAlreadyExists {
-		t.Errorf("expected ErrRutAlreadyExists, got %v", err)
+		t.Errorf("se esperaba ErrRutAlreadyExists, se obtuvo %v", err)
 	}
 }
 
 func TestCreatePatient_SameRutDifferentTenant(t *testing.T) {
 	m, _, _, err := setupModule()
 	if err != nil {
-		t.Fatalf("setup failed: %v", err)
+		t.Fatalf("setup falló: %v", err)
 	}
 
 	p1 := patientdirectory.Patient{
@@ -86,7 +86,7 @@ func TestCreatePatient_SameRutDifferentTenant(t *testing.T) {
 	}
 	_, err = m.CreatePatient(p1)
 	if err != nil {
-		t.Fatalf("CreatePatient 1 failed: %v", err)
+		t.Fatalf("CreatePatient 1 falló: %v", err)
 	}
 
 	p2 := patientdirectory.Patient{
@@ -97,17 +97,17 @@ func TestCreatePatient_SameRutDifferentTenant(t *testing.T) {
 	}
 	created2, err := m.CreatePatient(p2)
 	if err != nil {
-		t.Fatalf("CreatePatient 2 should succeed for different tenant, got: %v", err)
+		t.Fatalf("CreatePatient 2 debería tener éxito para un tenant distinto, se obtuvo: %v", err)
 	}
 	if created2.TenantId != "tenant-2" {
-		t.Errorf("expected tenant-2, got %s", created2.TenantId)
+		t.Errorf("se esperaba tenant-2, se obtuvo %s", created2.TenantId)
 	}
 }
 
 func TestCreatePatient_MissingRutOrName(t *testing.T) {
 	m, _, _, err := setupModule()
 	if err != nil {
-		t.Fatalf("setup failed: %v", err)
+		t.Fatalf("setup falló: %v", err)
 	}
 
 	pNoRut := patientdirectory.Patient{
@@ -117,7 +117,7 @@ func TestCreatePatient_MissingRutOrName(t *testing.T) {
 	}
 	_, err = m.CreatePatient(pNoRut)
 	if _, ok := err.(patientdirectory.ValidationError); !ok {
-		t.Errorf("expected ValidationError for missing RUT, got %v", err)
+		t.Errorf("se esperaba ValidationError para RUT faltante, se obtuvo %v", err)
 	}
 
 	pNoName := patientdirectory.Patient{
@@ -127,14 +127,14 @@ func TestCreatePatient_MissingRutOrName(t *testing.T) {
 	}
 	_, err = m.CreatePatient(pNoName)
 	if _, ok := err.(patientdirectory.ValidationError); !ok {
-		t.Errorf("expected ValidationError for missing Name, got %v", err)
+		t.Errorf("se esperaba ValidationError para Name faltante, se obtuvo %v", err)
 	}
 }
 
 func TestUpdatePatient_RutTakenByAnother(t *testing.T) {
 	m, _, _, err := setupModule()
 	if err != nil {
-		t.Fatalf("setup failed: %v", err)
+		t.Fatalf("setup falló: %v", err)
 	}
 
 	p1, _ := m.CreatePatient(patientdirectory.Patient{
@@ -150,11 +150,11 @@ func TestUpdatePatient_RutTakenByAnother(t *testing.T) {
 		IsActive: true,
 	})
 
-	// Try updating p2's RUT to p1's RUT
+	// Intentar actualizar el RUT de p2 al RUT de p1
 	p2.Rut = "11111111-1"
 	_, err = m.UpdatePatient(p2)
 	if err != patientdirectory.ErrRutAlreadyExists {
-		t.Errorf("expected ErrRutAlreadyExists, got %v", err)
+		t.Errorf("se esperaba ErrRutAlreadyExists, se obtuvo %v", err)
 	}
 	_ = p1
 }
@@ -162,7 +162,7 @@ func TestUpdatePatient_RutTakenByAnother(t *testing.T) {
 func TestUpdatePatient_KeepingOwnRut(t *testing.T) {
 	m, pub, _, err := setupModule()
 	if err != nil {
-		t.Fatalf("setup failed: %v", err)
+		t.Fatalf("setup falló: %v", err)
 	}
 
 	p1, _ := m.CreatePatient(patientdirectory.Patient{
@@ -175,10 +175,10 @@ func TestUpdatePatient_KeepingOwnRut(t *testing.T) {
 	p1.Name = "Patient 1 Updated"
 	updated, err := m.UpdatePatient(p1)
 	if err != nil {
-		t.Fatalf("UpdatePatient keeping own RUT failed: %v", err)
+		t.Fatalf("UpdatePatient manteniendo el propio RUT falló: %v", err)
 	}
 	if updated.Name != "Patient 1 Updated" {
-		t.Errorf("expected updated name, got %s", updated.Name)
+		t.Errorf("se esperaba nombre actualizado, se obtuvo %s", updated.Name)
 	}
 
 	var found bool
@@ -189,14 +189,14 @@ func TestUpdatePatient_KeepingOwnRut(t *testing.T) {
 		}
 	}
 	if !found {
-		t.Errorf("expected TopicPatientUpdated event published")
+		t.Errorf("se esperaba que el evento TopicPatientUpdated estuviera publicado")
 	}
 }
 
 func TestFindByRut_NormalisesInput(t *testing.T) {
 	m, _, _, err := setupModule()
 	if err != nil {
-		t.Fatalf("setup failed: %v", err)
+		t.Fatalf("setup falló: %v", err)
 	}
 
 	created, _ := m.CreatePatient(patientdirectory.Patient{
@@ -208,17 +208,17 @@ func TestFindByRut_NormalisesInput(t *testing.T) {
 
 	found, err := m.FindByRut("tenant-1", "12.345.678-k")
 	if err != nil {
-		t.Fatalf("FindByRut failed: %v", err)
+		t.Fatalf("FindByRut falló: %v", err)
 	}
 	if found.Id != created.Id {
-		t.Errorf("expected ID %s, got %s", created.Id, found.Id)
+		t.Errorf("se esperaba ID %s, se obtuvo %s", created.Id, found.Id)
 	}
 }
 
 func TestDeactivatePatient(t *testing.T) {
 	m, pub, _, err := setupModule()
 	if err != nil {
-		t.Fatalf("setup failed: %v", err)
+		t.Fatalf("setup falló: %v", err)
 	}
 
 	created, _ := m.CreatePatient(patientdirectory.Patient{
@@ -230,15 +230,15 @@ func TestDeactivatePatient(t *testing.T) {
 
 	err = m.DeactivatePatient("tenant-1", created.Id)
 	if err != nil {
-		t.Fatalf("DeactivatePatient failed: %v", err)
+		t.Fatalf("DeactivatePatient falló: %v", err)
 	}
 
 	p, err := m.GetPatient("tenant-1", created.Id)
 	if err != nil {
-		t.Fatalf("GetPatient failed: %v", err)
+		t.Fatalf("GetPatient falló: %v", err)
 	}
 	if p.IsActive {
-		t.Errorf("expected is_active to be false")
+		t.Errorf("se esperaba que is_active fuera false")
 	}
 
 	var found bool
@@ -249,6 +249,6 @@ func TestDeactivatePatient(t *testing.T) {
 		}
 	}
 	if !found {
-		t.Errorf("expected TopicPatientDeactivated event published")
+		t.Errorf("se esperaba que el evento TopicPatientDeactivated estuviera publicado")
 	}
 }

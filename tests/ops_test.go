@@ -127,15 +127,15 @@ func (w *mapWriter) Array(name string, n int) model.ArrayWriter { return nil }
 func TestOpsRegistrationAndExecution(t *testing.T) {
 	m, _, _, err := setupModule()
 	if err != nil {
-		t.Fatalf("setup failed: %v", err)
+		t.Fatalf("setup falló: %v", err)
 	}
 
 	reg := newMockRegistry()
 	m.MountOperations(reg)
 
-	// Ensure delete_patient is NOT registered
+	// Verificar que delete_patient NO esté registrado
 	if _, exists := reg.ops["delete_patient"]; exists {
-		t.Errorf("delete_patient op should NOT exist")
+		t.Errorf("la operación delete_patient NO debería existir")
 	}
 
 	expectedOps := []string{
@@ -147,11 +147,11 @@ func TestOpsRegistrationAndExecution(t *testing.T) {
 	}
 	for _, op := range expectedOps {
 		if _, exists := reg.ops[op]; !exists {
-			t.Errorf("expected op %s to be mounted", op)
+			t.Errorf("se esperaba que la op %s estuviera registrada", op)
 		}
 	}
 
-	// Test OpUpsertPatient creation success
+	// Probar éxito en creación de OpUpsertPatient
 	upsertHandler := reg.ops[patientdirectory.OpUpsertPatient]
 	reqBody, _ := json.Marshal(map[string]any{
 		"tenant_id": "tenant-1",
@@ -163,17 +163,17 @@ func TestOpsRegistrationAndExecution(t *testing.T) {
 	upsertHandler(ctx)
 
 	if ctx.statusCode != 0 && ctx.statusCode != 200 {
-		t.Errorf("expected status 200 or 0, got %d", ctx.statusCode)
+		t.Errorf("se esperaba estado 200 o 0, se obtuvo %d", ctx.statusCode)
 	}
 
-	// Test Duplicate RUT error -> 409
+	// Probar error de RUT duplicado -> 409
 	ctxDup := &mockContext{body: reqBody}
 	upsertHandler(ctxDup)
 	if ctxDup.statusCode != 409 {
-		t.Errorf("expected status 409 on duplicate RUT, got %d", ctxDup.statusCode)
+		t.Errorf("se esperaba estado 409 en RUT duplicado, se obtuvo %d", ctxDup.statusCode)
 	}
 
-	// Test GetPatient not found -> 404
+	// Probar GetPatient no encontrado -> 404
 	getHandler := reg.ops[patientdirectory.OpGetPatient]
 	getReq, _ := json.Marshal(map[string]any{
 		"tenant_id": "tenant-1",
@@ -182,6 +182,6 @@ func TestOpsRegistrationAndExecution(t *testing.T) {
 	ctxGet := &mockContext{body: getReq}
 	getHandler(ctxGet)
 	if ctxGet.statusCode != 404 {
-		t.Errorf("expected status 404 on non-existent patient, got %d", ctxGet.statusCode)
+		t.Errorf("se esperaba estado 404 en paciente no existente, se obtuvo %d", ctxGet.statusCode)
 	}
 }

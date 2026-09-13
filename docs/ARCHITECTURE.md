@@ -1,42 +1,42 @@
-# Architecture & Design Decisions
+# Arquitectura y Decisiones de Diseño
 
-## Domain Scope Boundary
+## Límite del Dominio
 
-`patient_directory` owns patient **identity** and **contact details**:
-- Identity: internal ID, national identifier (RUT), full name, birthdate.
-- Contact: phone number, email address, physical address.
-- Status: active flag (`is_active`), last updated timestamp (`updated_at`).
+`patient_directory` es propietario de la **identidad** y **datos de contacto** del paciente:
+- Identidad: ID interno, identificador nacional (RUT), nombre completo, fecha de nacimiento.
+- Contacto: número de teléfono, correo electrónico, dirección física.
+- Estado: indicador de activo (`is_active`), marca de tiempo de actualización (`updated_at`).
 
-It explicitly does **not** own:
-- Clinical encounters, diagnoses, notes, or prescriptions (owned by `clinical_encounter`).
-- Appointments or scheduling state (owned by `appointment_booking`).
-- Staff or practitioner user accounts (owned by `staff_manager`).
+Explícitamente **no** es propietario de:
+- Atenciones clínicas, diagnósticos, fichas ni recetas (propiedad de `clinical_encounter`).
+- Citas médicas ni estado de agenda (propiedad de `appointment_booking`).
+- Cuentas de usuarios de personal o profesionales de la salud (propiedad de `staff_manager`).
 
-## Core Architectural Decisions
+## Decisiones Arquitectónicas Principales
 
-1. **RUT Identity & Tenant Scope:**
-   - Chilean clinics identify patients by national RUT.
-   - Uniqueness is scoped per tenant — the same RUT may exist in different clinic tenants independently.
+1. **Identidad por RUT y Alcance por Tenant:**
+   - Las clínicas chilenas identifican a los pacientes mediante el RUT nacional.
+   - La unicidad está delimitada por tenant: el mismo RUT puede existir en diferentes tenants (clínicas) de forma independiente.
 
-2. **Application-Layer Uniqueness Enforcement:**
-   - Single-column unique constraints on `rut` would fail across multi-tenant databases.
-   - `patient_directory` checks RUT existence in `CreatePatient` and `UpdatePatient` and returns `ErrRutAlreadyExists`. `PatientModel` carries no `Unique: true` flag.
+2. **Control de Unicidad en Capa de Aplicación:**
+   - Una restricción de unicidad de una sola columna en `rut` fallaría en bases de datos multitenant.
+   - `patient_directory` verifica la existencia del RUT en `CreatePatient` y `UpdatePatient` retornando `ErrRutAlreadyExists`. `PatientModel` no lleva la marca `Unique: true`.
 
-3. **Deactivation over Deletion:**
-   - Patients are never deleted. `DeactivatePatient` sets `is_active = false`.
-   - Historical records and bookings referencing a patient ID must always resolve.
+3. **Desactivación en lugar de Eliminación:**
+   - Los pacientes nunca se eliminan físicamente. `DeactivatePatient` establece `is_active = false`.
+   - Los registros históricos y reservas que referencian a un ID de paciente siempre deben poder resolverse.
 
-4. **Injected RUT Validation:**
-   - `Deps.ValidateRUT` function is injected into `patientdirectory.New`.
-   - The module depends on no specific RUT library and implements no check-digit calculations.
+4. **Validación de RUT Inyectada:**
+   - La función `Deps.ValidateRUT` se inyecta en `patientdirectory.New`.
+   - El módulo no depende de ninguna librería específica de RUT ni implementa algoritmos de dígito verificador.
 
-5. **No UI Strings / No Spanish Translations:**
-   - Handlers and models return standard domain constants and errors.
-   - Translating labels for end users is the responsibility of consuming web/mobile interfaces.
+5. **Sin Cadenas de UI / Sin Traducciones de Idioma:**
+   - Los controladores y modelos retornan constantes de dominio y errores estándar.
+   - La traducción de etiquetas para los usuarios finales es responsabilidad de las interfaces web/móviles consumidoras.
 
-## Composition Root Wiring Example
+## Ejemplo de Ensamblado en Raíz de Composición (Composition Root)
 
-Wiring `patient_directory` into `appointment_booking`:
+Conexión de `patient_directory` con `appointment_booking`:
 
 ```go
 package main
@@ -47,20 +47,20 @@ import (
 )
 
 func main() {
-	// 1. Initialize patient_directory module
+	// 1. Inicializar módulo patient_directory
 	patientMod, err := patientdirectory.New(db, patientdirectory.Deps{
 		IDs: idGen,
 		ValidateRUT: myRutValidator,
 		Publisher: eventPub,
 	})
 	if err != nil {
-		log.Fatalf("failed to init patient_directory: %v", err)
+		log.Fatalf("error al inicializar patient_directory: %v", err)
 	}
 
-	// 2. Wire directly into appointment_booking without adapter (structurally satisfies ClientExists)
+	// 2. Conectar directamente con appointment_booking sin adaptador (satisface estructuralmente ClientExists)
 	/*
 	bookingMod, err := appointmentbooking.New(db, appointmentbooking.Deps{
-		Directory: patientMod, // satisfies DirectoryReader interface
+		Directory: patientMod, // satisface la interfaz DirectoryReader
 	})
 	*/
 	_ = patientMod

@@ -9,7 +9,7 @@ import (
 func TestTenantIsolation(t *testing.T) {
 	m, _, _, err := setupModule()
 	if err != nil {
-		t.Fatalf("setup failed: %v", err)
+		t.Fatalf("setup falló: %v", err)
 	}
 
 	p1, _ := m.CreatePatient(patientdirectory.Patient{
@@ -26,32 +26,32 @@ func TestTenantIsolation(t *testing.T) {
 		IsActive: true,
 	})
 
-	// GetPatient cross-tenant isolation
+	// Aislamiento entre tenants para GetPatient
 	_, err = m.GetPatient("tenant-B", p1.Id)
 	if err != patientdirectory.ErrNotFound {
-		t.Errorf("expected ErrNotFound querying tenant-A patient under tenant-B, got %v", err)
+		t.Errorf("se esperaba ErrNotFound al consultar un paciente de tenant-A en tenant-B, se obtuvo %v", err)
 	}
 
-	// FindByRut cross-tenant isolation
+	// Aislamiento entre tenants para FindByRut
 	_, err = m.FindByRut("tenant-B", p1.Rut)
 	if err != patientdirectory.ErrNotFound {
-		t.Errorf("expected ErrNotFound querying tenant-A RUT under tenant-B, got %v", err)
+		t.Errorf("se esperaba ErrNotFound al consultar un RUT de tenant-A en tenant-B, se obtuvo %v", err)
 	}
 
-	// ListPatients tenant filtering
+	// Filtrado por tenant en ListPatients
 	listA, err := m.ListPatients("tenant-A", patientdirectory.PatientFilter{})
 	if err != nil {
-		t.Fatalf("ListPatients tenant-A failed: %v", err)
+		t.Fatalf("ListPatients tenant-A falló: %v", err)
 	}
 	if len(listA) != 1 || listA[0].Id != p1.Id {
-		t.Errorf("expected listA to contain p1 only, got %v", listA)
+		t.Errorf("se esperaba que listA contuviera únicamente a p1, se obtuvo %v", listA)
 	}
 
 	listB, err := m.ListPatients("tenant-B", patientdirectory.PatientFilter{})
 	if err != nil {
-		t.Fatalf("ListPatients tenant-B failed: %v", err)
+		t.Fatalf("ListPatients tenant-B falló: %v", err)
 	}
 	if len(listB) != 1 || listB[0].Id != p2.Id {
-		t.Errorf("expected listB to contain p2 only, got %v", listB)
+		t.Errorf("se esperaba que listB contuviera únicamente a p2, se obtuvo %v", listB)
 	}
 }

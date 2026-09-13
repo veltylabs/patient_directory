@@ -1,24 +1,24 @@
-# Patient Directory (`patient_directory`)
+# Directorio de Pacientes (`patient_directory`)
 
-Tenant-scoped patient registry for the Velty ecosystem.
+Registro de pacientes delimitado por tenant (organización/clínica) para el ecosistema Velty.
 
-This module owns patient identity and contact details (who a person is and how to reach them). It owns **no clinical data**. Diagnoses, visits, prescriptions, and history belong to `clinical_encounter`; appointments belong to `appointment_booking`.
+Este módulo es propietario de la **identidad** y **datos de contacto** del paciente (quién es una persona y cómo contactarla). **No posee datos clínicos**. Los diagnósticos, atenciones, recetas e historial pertenecen a `clinical_encounter`; las citas médicas pertenecen a `appointment_booking`.
 
-## Operations
+## Operaciones
 
-| Op | Resource | Action | Description |
+| Operación | Recurso | Acción | Descripción |
 |---|---|---|---|
-| `list_patients` | `patient` | `Read` | List patients for a tenant with optional `active_only`, `limit`, `offset` |
-| `get_patient` | `patient` | `Read` | Retrieve a patient by ID within a tenant |
-| `find_patient_by_rut` | `patient` | `Read` | Find a patient by RUT within a tenant |
-| `upsert_patient` | `patient` | `Create\|Update` | Create a new patient or update an existing patient |
-| `deactivate_patient` | `patient` | `Update` | Deactivate a patient (`is_active = false`) |
+| `list_patients` | `patient` | `Read` | Lista pacientes de un tenant con opciones de `active_only`, `limit`, `offset` |
+| `get_patient` | `patient` | `Read` | Obtiene un paciente por su ID dentro de un tenant |
+| `find_patient_by_rut` | `patient` | `Read` | Busca un paciente por RUT dentro de un tenant |
+| `upsert_patient` | `patient` | `Create\|Update` | Crea un nuevo paciente o actualiza uno existente |
+| `deactivate_patient` | `patient` | `Update` | Desactiva un paciente (`is_active = false`) |
 
-*Note: There is no delete operation. Patients are deactivated, never deleted.*
+*Nota: No existe operación de eliminación física. Los pacientes se desactivan, nunca se eliminan.*
 
-## Ports Satisfied
+## Puertos satisfechos
 
-This module satisfies the narrow `DirectoryReader` port declared by `appointment_booking`:
+Este módulo satisface la interfaz del puerto `DirectoryReader` declarado por `appointment_booking`:
 
 ```go
 type DirectoryReader interface {
@@ -26,25 +26,25 @@ type DirectoryReader interface {
 }
 ```
 
-- `ClientExists(tenantID, clientID)` returns `(true, nil)` if a patient with `clientID` exists in `tenantID`, regardless of whether the patient is active or inactive.
-- Returns `(false, nil)` if the patient does not exist or belongs to another tenant.
+- `ClientExists(tenantID, clientID)` retorna `(true, nil)` si un paciente con `clientID` existe en `tenantID`, independientemente de si el paciente está activo o inactivo.
+- Retorna `(false, nil)` si el paciente no existe o pertenece a otro tenant.
 
-## Quick Start
+## Inicio rápido
 
-### Migration
+### Migración
 
-Execute schema migrations before starting the service module:
+Ejecute las migraciones de esquema antes de iniciar el módulo de servicio:
 
 ```go
 import (
     "github.com/veltylabs/patient_directory/migrate"
 )
 
-// conn satisfies ddl.Execer and ddlCompiler satisfies ddl.Compiler
+// conn satisface ddl.Execer y ddlCompiler satisface ddl.Compiler
 err := migrate.Migrate(conn, ddlCompiler)
 ```
 
-### Module Initialization
+### Inicialización del módulo
 
 ```go
 import (
@@ -53,9 +53,9 @@ import (
 
 deps := patientdirectory.Deps{
     IDs: idGenerator, // model.IDGenerator
-    Publisher: eventPublisher, // events.Publisher (optional)
+    Publisher: eventPublisher, // events.Publisher (opcional)
     ValidateRUT: func(rut string) (string, error) {
-        // Normalises and validates RUT returning canonical string
+        // Normaliza y valida el RUT retornando la cadena canónica
         return normalisedRut, nil
     },
 }
@@ -63,11 +63,11 @@ deps := patientdirectory.Deps{
 module, err := patientdirectory.New(db, deps)
 ```
 
-## Key Files
+## Archivos clave
 
-- `model.go` — Model definitions for `Patient` and operation arguments
-- `model_orm.go` — Generated ORM bindings (via `ormc`)
-- `module.go` — Domain service logic and `ClientExists` port implementation
-- `ops.go` — Router operations handler and registration
-- `view.go` — View presenter engine (`NewView`)
-- `migrate/migrate.go` — Database schema synchronization
+- `model.go` — Definiciones de modelos para `Patient` y argumentos de operaciones.
+- `model_orm.go` — Enlaces ORM generados (vía `ormc`).
+- `module.go` — Lógica de dominio del servicio e implementación del puerto `ClientExists`.
+- `ops.go` — Controladores de operaciones del router y su registro.
+- `view.go` — Motor de presentación de vista (`NewView`).
+- `migrate/migrate.go` — Sincronización del esquema de base de datos.

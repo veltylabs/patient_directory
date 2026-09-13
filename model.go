@@ -6,17 +6,14 @@ import (
 	"webtyp.com/model"
 )
 
-// Helper vars satisfy ormc's AST static type parser when the same Kind
-// constructor is reused across more than one Definition — the same defensive
-// pattern device_manager and item_catalog use.
-// PatientModel is the establishment's registry of the people it serves:
-// IDENTITY and CONTACT only. Clinical data — diagnoses, visits, prescriptions —
-// belongs to clinical_encounter and must never be added here.
+// PatientModel es el registro del establecimiento para las personas que atiende:
+// IDENTIDAD y CONTACTO únicamente. Los datos clínicos —diagnósticos, atenciones, recetas—
+// pertenecen a clinical_encounter y nunca deben agregarse aquí.
 //
-// rut carries NO Unique flag on purpose: model.FieldDB's Unique is
-// single-column, and a RUT is unique per TENANT, not globally. The constraint
-// is enforced in CreatePatient against ErrRutAlreadyExists — the same
-// application-layer rule device_manager applies to a device IP.
+// rut NO lleva la marca Unique a propósito: la propiedad Unique de model.FieldDB es
+// de columna única, y un RUT es único por TENANT, no globalmente. La restricción
+// se aplica en CreatePatient contra ErrRutAlreadyExists —la misma regla de capa de
+// aplicación que device_manager aplica a una IP de dispositivo.
 var PatientModel = model.Definition{
 	Name: "patient",
 	Fields: model.Fields{
@@ -79,8 +76,8 @@ type ValidationError struct{ Err error }
 
 func (v ValidationError) Error() string { return v.Err.Error() }
 
-// <module>.<entity>.<past-tense-verb> — tenant_id goes in the payload, never
-// in the topic name.
+// <module>.<entity>.<past-tense-verb> — tenant_id va en la carga útil (payload),
+// nunca en el nombre del tema (topic).
 const (
 	TopicPatientCreated     = "patient_directory.patient.created"
 	TopicPatientUpdated     = "patient_directory.patient.updated"
