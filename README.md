@@ -1,4 +1,5 @@
 # Directorio de Pacientes (`patient_directory`)
+<img src="docs/img/badges.svg">
 
 Registro de pacientes delimitado por tenant (organización/clínica) para el ecosistema Velty.
 
