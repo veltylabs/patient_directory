@@ -26,7 +26,7 @@ const titlePatients = "Patients"
 // nunca se elimina (consulte AGENTS.md).
 func NewView(caller router.Caller) view.Presenter {
 	b := view.NewCallerLister(caller,
-		view.Ops{List: OpListPatients, Save: OpUpsertPatient},
+		view.Ops{Module: ModelName, List: OpListPatients, Save: OpUpsertPatient},
 		func() model.ModelSlice { return &PatientList{} })
 	return view.New(b, &Patient{}, view.WithTitle(titlePatients))
 }
