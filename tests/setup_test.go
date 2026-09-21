@@ -49,6 +49,7 @@ func setupModule() (*patientdirectory.Module, *fakePublisher, *fakeIDGen, error)
 		IDs:         idGen,
 		Publisher:   pub,
 		ValidateRUT: fakeValidateRUT,
+		TenantID:    "test-tenant",
 	}
 
 	m, err := patientdirectory.New(db, deps)
