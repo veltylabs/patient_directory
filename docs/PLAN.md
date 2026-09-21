@@ -2,8 +2,9 @@
 PLAN: "fix: opListPatients has no tenant fallback, so every real list load (which sends no args) returns zero rows"
 EXECUTOR: jules
 REVIEWER: none
-STATUS: running
+STATUS: review
 SESSION: 14979047112328876435
+PR: https://github.com/veltylabs/patient_directory/pull/2
 ---
 
 > This plan is dispatched via the CodeJob workflow. See skill: agents-workflow.

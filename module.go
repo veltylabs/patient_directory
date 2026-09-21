@@ -12,6 +12,10 @@ import (
 type Deps struct {
 	IDs       model.IDGenerator // requerido — el módulo nunca genera los suyos propios
 	Publisher events.Publisher  // opcional — nil deshabilita la publicación silenciosamente
+	// TenantID identifica esta instalación — el valor por defecto que opListPatients usa
+	// cuando quien llama no envía tenant_id (todo listado respaldado por
+	// crudview lo hace así).
+	TenantID string
 	// ValidateRUT normaliza y valida un RUT, retornando la forma canónica.
 	// Requerido. Inyectado, nunca importado: este módulo no debe depender de ninguna
 	// implementación particular de RUT, ni incluir su propio cálculo de dígito verificador.
@@ -23,6 +27,7 @@ type Module struct {
 	ids         model.IDGenerator
 	pub         events.Publisher
 	validateRUT func(string) (string, error)
+	tenantID    string
 }
 
 // New conecta el módulo a un *orm.DB ya conectado; se asume que el esquema
@@ -34,11 +39,15 @@ func New(db *orm.DB, deps Deps) (*Module, error) {
 	if deps.ValidateRUT == nil {
 		return nil, fmt.Err("patient_directory: Deps.ValidateRUT is required")
 	}
+	if deps.TenantID == "" {
+		return nil, fmt.Err("patient_directory: Deps.TenantID is required")
+	}
 	return &Module{
 		db:          db,
 		ids:         deps.IDs,
 		pub:         deps.Publisher,
 		validateRUT: deps.ValidateRUT,
+		tenantID:    deps.TenantID,
 	}, nil
 }
 

@@ -61,7 +61,11 @@ func (m *Module) opListPatients(ctx router.Context) {
 		_, _ = ctx.Write([]byte(err.Error()))
 		return
 	}
-	patients, err := m.ListPatients(args.TenantId, PatientFilter{
+	tenantID := args.TenantId
+	if tenantID == "" {
+		tenantID = m.tenantID
+	}
+	patients, err := m.ListPatients(tenantID, PatientFilter{
 		ActiveOnly: args.ActiveOnly,
 		Limit:      args.Limit,
 		Offset:     args.Offset,
