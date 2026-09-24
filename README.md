@@ -5,6 +5,14 @@ Registro de pacientes delimitado por tenant (organización/clínica) para el eco
 
 Este módulo es propietario de la **identidad** y **datos de contacto** del paciente (quién es una persona y cómo contactarla). **No posee datos clínicos**. Los diagnósticos, atenciones, recetas e historial pertenecen a `clinical_encounter`; las citas médicas pertenecen a `appointment_booking`.
 
+## View and demo
+
+This module provides its own UI sub-package `ui/`, demo data loader `seed/`, and runnable demo in `web/`:
+
+- `ui`: Exports `ID`, `Label`, and `Browser(caller router.Caller, ids model.IDGenerator, tenantID string) (platformd.UIModule, error)`.
+- `seed`: Exports `Load(m *patientdirectory.Module, tenantID string) (Data, error)` which writes through module domain methods to populate initial seed patients.
+- `web`: Run `webtyp` at the repository root to open the demo — in-browser, in-memory, no login.
+
 ## Operaciones
 
 | Operación | Recurso | Acción | Descripción |

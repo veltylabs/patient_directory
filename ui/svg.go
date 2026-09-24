@@ -1,6 +1,6 @@
 //go:build !wasm
 
-package patient_directory
+package ui
 
 import (
 	"webtyp.com/svg"
