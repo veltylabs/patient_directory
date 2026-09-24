@@ -2,8 +2,9 @@
 PLAN: "feat(ui): la vista de Pacientes, su semilla y su demo viven en el módulo"
 EXECUTOR: jules
 REVIEWER: none
-STATUS: running
+STATUS: review
 SESSION: 12902217389039436367
+PR: https://github.com/veltylabs/patient_directory/pull/3
 ---
 
 > Este plan se despacha con el flujo CodeJob. Ver skill: agents-workflow.
