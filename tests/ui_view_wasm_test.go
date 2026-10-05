@@ -60,7 +60,13 @@ func TestWASM_PatientDirectory_ViewListsOnInit(t *testing.T) {
 	}
 	initView(m)
 
+	if len(ops) != 0 {
+		t.Errorf("la pantalla de pacientes no debe pedir datos en init (lazy activation), ops=%v", ops)
+	}
+
+	m.Activate()
+
 	if !called(ops, patientdirectory.ModelName+"."+patientdirectory.OpListPatients) {
-		t.Errorf("la pantalla de pacientes debe pedir su lista al iniciarse, ops=%v", ops)
+		t.Errorf("la pantalla de pacientes debe pedir su lista al activarse, ops=%v", ops)
 	}
 }

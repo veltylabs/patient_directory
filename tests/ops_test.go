@@ -20,6 +20,7 @@ func (m *mockRoute) Public() router.Route        { return m }
 func (m *mockRoute) Accepts(args model.Fielder) router.Route {
 	return m
 }
+func (m *mockRoute) Describe(desc string) router.Route { return m }
 
 type mockRegistry struct {
 	ops map[string]router.HandlerFunc

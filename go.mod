@@ -10,10 +10,10 @@ require (
 	webtyp.com/fmt v1.0.0
 	webtyp.com/input v0.0.10
 	webtyp.com/json v0.5.27
-	webtyp.com/layout v0.3.3
+	webtyp.com/layout v0.3.23
 	webtyp.com/model v0.2.0
 	webtyp.com/orm v0.12.4
-	webtyp.com/router v0.2.1
+	webtyp.com/router v0.3.2
 	webtyp.com/storage v0.1.1
 	webtyp.com/svg v0.3.14
 	webtyp.com/time v0.5.7
@@ -23,7 +23,7 @@ require (
 
 require (
 	webtyp.com/color v0.1.2 // indirect
-	webtyp.com/components v0.7.0 // indirect
+	webtyp.com/components v0.8.6 // indirect
 	webtyp.com/css v0.4.27 // indirect
 	webtyp.com/date v0.0.7 // indirect
 	webtyp.com/font v0.0.5 // indirect
