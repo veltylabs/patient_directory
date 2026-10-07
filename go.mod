@@ -8,9 +8,9 @@ require (
 	webtyp.com/dom v0.13.21
 	webtyp.com/events v0.0.5
 	webtyp.com/fmt v1.0.0
-	webtyp.com/input v0.0.13
+	webtyp.com/input v0.0.16
 	webtyp.com/json v0.5.29
-	webtyp.com/layout v0.3.28
+	webtyp.com/layout v0.3.29
 	webtyp.com/model v0.2.2
 	webtyp.com/orm v0.12.4
 	webtyp.com/router v0.3.2
@@ -18,12 +18,12 @@ require (
 	webtyp.com/svg v0.3.14
 	webtyp.com/time v0.5.7
 	webtyp.com/unixid v0.2.28
-	webtyp.com/view v0.6.10
+	webtyp.com/view v0.6.26
 )
 
 require (
 	webtyp.com/color v0.1.2 // indirect
-	webtyp.com/components v0.8.8 // indirect
+	webtyp.com/components v0.8.12 // indirect
 	webtyp.com/css v0.4.28 // indirect
 	webtyp.com/date v0.0.9 // indirect
 	webtyp.com/escape v0.1.0 // indirect
