@@ -67,7 +67,7 @@ func TestCreatePatient_DuplicateRutSameTenant(t *testing.T) {
 		IsActive: true,
 	}
 	_, err = m.CreatePatient(p2)
-	if err != patientdirectory.ErrRutAlreadyExists {
+	if err == nil || err.Error() != "patient rut already exists in this tenant" {
 		t.Errorf("se esperaba ErrRutAlreadyExists, se obtuvo %v", err)
 	}
 }
@@ -153,7 +153,7 @@ func TestUpdatePatient_RutTakenByAnother(t *testing.T) {
 	// Intentar actualizar el RUT de p2 al RUT de p1
 	p2.Rut = "11111111-1"
 	_, err = m.UpdatePatient(p2)
-	if err != patientdirectory.ErrRutAlreadyExists {
+	if err == nil || err.Error() != "patient rut already exists in this tenant" {
 		t.Errorf("se esperaba ErrRutAlreadyExists, se obtuvo %v", err)
 	}
 	_ = p1
@@ -250,5 +250,24 @@ func TestDeactivatePatient(t *testing.T) {
 	}
 	if !found {
 		t.Errorf("se esperaba que el evento TopicPatientDeactivated estuviera publicado")
+	}
+}
+
+func TestSentinelErrors(t *testing.T) {
+	tests := []struct {
+		err      error
+		expected string
+	}{
+		{patientdirectory.ErrNotFound, "patient not found"},
+		{patientdirectory.ErrRutAlreadyExists, "patient rut already exists in this tenant"},
+		{patientdirectory.ErrRutRequired, "patient rut is required"},
+		{patientdirectory.ErrNameRequired, "patient name is required"},
+		{patientdirectory.ErrTenantRequired, "patient tenant_id is required"},
+	}
+
+	for _, tt := range tests {
+		if tt.err.Error() != tt.expected {
+			t.Errorf("se esperaba el texto '%s', se obtuvo '%s'", tt.expected, tt.err.Error())
+		}
 	}
 }

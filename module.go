@@ -87,8 +87,17 @@ func (m *Module) CreatePatient(p Patient) (Patient, error) {
 	existing, err := m.FindByRut(p.TenantId, p.Rut)
 	if err == nil && existing.Id != "" {
 		return Patient{}, ErrRutAlreadyExists
-	} else if err != nil && err != ErrNotFound {
-		return Patient{}, err
+	} else if err != nil {
+		var isNotFound bool
+		if e, ok := err.(domainError); ok {
+			switch e {
+			case ErrNotFound:
+				isNotFound = true
+			}
+		}
+		if !isNotFound {
+			return Patient{}, err
+		}
 	}
 
 	if p.Id == "" {
@@ -135,8 +144,17 @@ func (m *Module) UpdatePatient(p Patient) (Patient, error) {
 		existing, err := m.FindByRut(p.TenantId, normRut)
 		if err == nil && existing.Id != "" && existing.Id != p.Id {
 			return Patient{}, ErrRutAlreadyExists
-		} else if err != nil && err != ErrNotFound {
-			return Patient{}, err
+		} else if err != nil {
+			var isNotFound bool
+			if e, ok := err.(domainError); ok {
+				switch e {
+				case ErrNotFound:
+					isNotFound = true
+				}
+			}
+			if !isNotFound {
+				return Patient{}, err
+			}
 		}
 	}
 
@@ -159,7 +177,7 @@ func (m *Module) GetPatient(tenantID, id string) (Patient, error) {
 		Where(Patient_.TenantId).Eq(tenantID).
 		Where(Patient_.Id).Eq(id)
 	_, err := ReadOnePatient(qb, &p)
-	if err == orm.ErrNotFound {
+	if orm.IsNotFound(err) {
 		return Patient{}, ErrNotFound
 	}
 	if err != nil {
@@ -181,7 +199,7 @@ func (m *Module) FindByRut(tenantID, rut string) (Patient, error) {
 		Where(Patient_.TenantId).Eq(tenantID).
 		Where(Patient_.Rut).Eq(normRut)
 	_, err = ReadOnePatient(qb, &p)
-	if err == orm.ErrNotFound {
+	if orm.IsNotFound(err) {
 		return Patient{}, ErrNotFound
 	}
 	if err != nil {
@@ -250,8 +268,11 @@ func (m *Module) ClientExists(tenantID, clientID string) (bool, error) {
 		return false, nil
 	}
 	_, err := m.GetPatient(tenantID, clientID)
-	if err == ErrNotFound {
-		return false, nil
+	if e, ok := err.(domainError); ok {
+		switch e {
+		case ErrNotFound:
+			return false, nil
+		}
 	}
 	if err != nil {
 		return false, err

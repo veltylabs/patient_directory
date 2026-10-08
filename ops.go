@@ -40,15 +40,17 @@ func (m *Module) handleErr(ctx router.Context, err error) {
 		_, _ = ctx.Write([]byte(err.Error()))
 		return
 	}
-	if err == ErrRutAlreadyExists {
-		ctx.WriteStatus(409)
-		_, _ = ctx.Write([]byte(err.Error()))
-		return
-	}
-	if err == ErrNotFound {
-		ctx.WriteStatus(404)
-		_, _ = ctx.Write([]byte(err.Error()))
-		return
+	if e, ok := err.(domainError); ok {
+		switch e {
+		case ErrRutAlreadyExists:
+			ctx.WriteStatus(409)
+			_, _ = ctx.Write([]byte(err.Error()))
+			return
+		case ErrNotFound:
+			ctx.WriteStatus(404)
+			_, _ = ctx.Write([]byte(err.Error()))
+			return
+		}
 	}
 	ctx.WriteStatus(500)
 	_, _ = ctx.Write([]byte(err.Error()))
