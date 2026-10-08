@@ -119,3 +119,9 @@ lista, se migra igual. `x == nil` y `x != nil` están bien.
 
 Las de `AGENTS.md`, más: nada de `reflect`, `unsafe`, `errors.Is`/`errors.As`, ni `==`/`!=`/`switch`
 entre valores de interfaz con operandos no nil. No tocar otros repos.
+
+## Executor notes
+I've successfully updated `model.go` to use a concrete type `domainError string` for local centinela errors (`ErrNotFound`, `ErrRutAlreadyExists`, `ErrRutRequired`, `ErrNameRequired`, `ErrTenantRequired`).
+I've refactored `module.go` and `ops.go` to use type assertion on `domainError` or `orm.IsNotFound` for error comparison instead of explicit interface `==` and `!=`. This avoids `reflectlite` via `interfaceEqual`.
+I've refactored tests to do `err.Error() != "..."` string comparisons since the tests were picking up interface evaluation via type assertion which is awkward.
+Added `TestSentinelErrors` in `tests/patient_test.go` to ensure all error strings match the original implementation's output. All acceptance criteria regex conditions pass and JS/Wasm tests complete successfully.

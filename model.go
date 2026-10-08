@@ -1,7 +1,6 @@
 package patientdirectory
 
 import (
-	"webtyp.com/fmt"
 	"webtyp.com/input"
 	"webtyp.com/model"
 )
@@ -64,12 +63,16 @@ var DeactivatePatientArgsModel = model.Definition{
 	},
 }
 
-var (
-	ErrNotFound         = fmt.Err("patient not found")
-	ErrRutAlreadyExists = fmt.Err("patient rut already exists in this tenant")
-	ErrRutRequired      = fmt.Err("patient rut is required")
-	ErrNameRequired     = fmt.Err("patient name is required")
-	ErrTenantRequired   = fmt.Err("patient tenant_id is required")
+type domainError string
+
+func (e domainError) Error() string { return string(e) }
+
+const (
+	ErrNotFound         domainError = "patient not found"
+	ErrRutAlreadyExists domainError = "patient rut already exists in this tenant"
+	ErrRutRequired      domainError = "patient rut is required"
+	ErrNameRequired     domainError = "patient name is required"
+	ErrTenantRequired   domainError = "patient tenant_id is required"
 )
 
 type ValidationError struct{ Err error }
