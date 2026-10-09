@@ -3,6 +3,8 @@ PLAN: "feat!: el id del paciente lo genera quien llama — CreatePatient exige I
 TAG: v0.1.0
 EXECUTOR: jules
 REVIEWER: none
+STATUS: running
+SESSION: 2342664417546434681
 ---
 
 > This plan is dispatched via the CodeJob workflow. See skill: agents-workflow.
