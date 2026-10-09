@@ -16,12 +16,13 @@ type directoryReader interface {
 var _ directoryReader = (*patientdirectory.Module)(nil)
 
 func TestClientExists_True(t *testing.T) {
-	m, _, _, err := setupModule()
+	m, _, err := setupModule()
 	if err != nil {
 		t.Fatalf("setup falló: %v", err)
 	}
 
 	p, _ := m.CreatePatient(patientdirectory.Patient{
+		Id:       "id-1",
 		TenantId: "tenant-1",
 		Rut:      "12345678-K",
 		Name:     "John Doe",
@@ -38,7 +39,7 @@ func TestClientExists_True(t *testing.T) {
 }
 
 func TestClientExists_UnknownID(t *testing.T) {
-	m, _, _, err := setupModule()
+	m, _, err := setupModule()
 	if err != nil {
 		t.Fatalf("setup falló: %v", err)
 	}
@@ -53,12 +54,13 @@ func TestClientExists_UnknownID(t *testing.T) {
 }
 
 func TestClientExists_WrongTenant(t *testing.T) {
-	m, _, _, err := setupModule()
+	m, _, err := setupModule()
 	if err != nil {
 		t.Fatalf("setup falló: %v", err)
 	}
 
 	p, _ := m.CreatePatient(patientdirectory.Patient{
+		Id:       "id-1",
 		TenantId: "tenant-1",
 		Rut:      "12345678-K",
 		Name:     "John Doe",
@@ -75,12 +77,13 @@ func TestClientExists_WrongTenant(t *testing.T) {
 }
 
 func TestClientExists_InactivePatientStillExists(t *testing.T) {
-	m, _, _, err := setupModule()
+	m, _, err := setupModule()
 	if err != nil {
 		t.Fatalf("setup falló: %v", err)
 	}
 
 	p, _ := m.CreatePatient(patientdirectory.Patient{
+		Id:       "id-1",
 		TenantId: "tenant-1",
 		Rut:      "12345678-K",
 		Name:     "John Doe",
@@ -99,7 +102,7 @@ func TestClientExists_InactivePatientStillExists(t *testing.T) {
 }
 
 func TestClientExists_EmptyArgs(t *testing.T) {
-	m, _, _, err := setupModule()
+	m, _, err := setupModule()
 	if err != nil {
 		t.Fatalf("setup falló: %v", err)
 	}

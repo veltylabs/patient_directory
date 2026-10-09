@@ -7,12 +7,13 @@ import (
 )
 
 func TestCreatePatient_AssignsIDAndNormalisesRut(t *testing.T) {
-	m, pub, idGen, err := setupModule()
+	m, pub, err := setupModule()
 	if err != nil {
 		t.Fatalf("setup falló: %v", err)
 	}
 
 	p := patientdirectory.Patient{
+		Id:       "id-1",
 		TenantId: "tenant-1",
 		Rut:      "12.345.678-k",
 		Name:     "John Doe",
@@ -40,16 +41,93 @@ func TestCreatePatient_AssignsIDAndNormalisesRut(t *testing.T) {
 	if pub.published[0].Topic != patientdirectory.TopicPatientCreated {
 		t.Errorf("se esperaba el topic %s, se obtuvo %s", patientdirectory.TopicPatientCreated, pub.published[0].Topic)
 	}
-	_ = idGen
 }
 
-func TestCreatePatient_DuplicateRutSameTenant(t *testing.T) {
-	m, _, _, err := setupModule()
+func TestCreatePatient_IdempotentRetry(t *testing.T) {
+	m, pub, err := setupModule()
 	if err != nil {
 		t.Fatalf("setup falló: %v", err)
 	}
 
 	p1 := patientdirectory.Patient{
+		Id:       "id-1",
+		TenantId: "tenant-1",
+		Rut:      "12345678-K",
+		Name:     "John Doe",
+		IsActive: true,
+	}
+
+	created1, err := m.CreatePatient(p1)
+	if err != nil {
+		t.Fatalf("CreatePatient 1 falló: %v", err)
+	}
+
+	// Reintento con el mismo ID, en el mismo tenant
+	created2, err := m.CreatePatient(p1)
+	if err != nil {
+		t.Fatalf("CreatePatient 2 (reintento) falló: %v", err)
+	}
+
+	if created1.Id != created2.Id {
+		t.Errorf("se esperaba el mismo ID en el reintento")
+	}
+
+	// Verificar que solo haya un paciente en ListPatients
+	patients, err := m.ListPatients("tenant-1", patientdirectory.PatientFilter{})
+	if err != nil {
+		t.Fatalf("ListPatients falló: %v", err)
+	}
+	if len(patients) != 1 {
+		t.Fatalf("se esperaba 1 fila, se obtuvieron %d", len(patients))
+	}
+
+	// Verificar que se haya publicado un solo evento
+	if len(pub.published) != 1 {
+		t.Fatalf("se esperaba 1 evento publicado, se obtuvo %d", len(pub.published))
+	}
+}
+
+func TestCreatePatient_SameIdDifferentTenant(t *testing.T) {
+	m, _, err := setupModule()
+	if err != nil {
+		t.Fatalf("setup falló: %v", err)
+	}
+
+	p1 := patientdirectory.Patient{
+		Id:       "id-1",
+		TenantId: "tenant-1",
+		Rut:      "12345678-K",
+		Name:     "John Doe",
+		IsActive: true,
+	}
+
+	_, err = m.CreatePatient(p1)
+	if err != nil {
+		t.Fatalf("CreatePatient 1 falló: %v", err)
+	}
+
+	p2 := patientdirectory.Patient{
+		Id:       "id-1",
+		TenantId: "tenant-2", // Diferente tenant, mismo ID
+		Rut:      "11111111-1",
+		Name:     "Jane Doe",
+		IsActive: true,
+	}
+
+	_, err = m.CreatePatient(p2)
+	if err == nil || err.Error() != patientdirectory.ErrIdTaken.Error() {
+		t.Errorf("se esperaba ErrIdTaken, se obtuvo %v", err)
+	}
+}
+
+func TestCreatePatient_DuplicateRutSameTenant(t *testing.T) {
+	m, _, err := setupModule()
+	if err != nil {
+		t.Fatalf("setup falló: %v", err)
+	}
+
+	p1 := patientdirectory.Patient{
+		Id:       "id-1",
 		TenantId: "tenant-1",
 		Rut:      "12345678-K",
 		Name:     "John Doe",
@@ -61,6 +139,7 @@ func TestCreatePatient_DuplicateRutSameTenant(t *testing.T) {
 	}
 
 	p2 := patientdirectory.Patient{
+		Id:       "id-2",
 		TenantId: "tenant-1",
 		Rut:      "12.345.678-k",
 		Name:     "Jane Doe",
@@ -73,12 +152,13 @@ func TestCreatePatient_DuplicateRutSameTenant(t *testing.T) {
 }
 
 func TestCreatePatient_SameRutDifferentTenant(t *testing.T) {
-	m, _, _, err := setupModule()
+	m, _, err := setupModule()
 	if err != nil {
 		t.Fatalf("setup falló: %v", err)
 	}
 
 	p1 := patientdirectory.Patient{
+		Id:       "id-1",
 		TenantId: "tenant-1",
 		Rut:      "12345678-K",
 		Name:     "John Doe",
@@ -90,6 +170,7 @@ func TestCreatePatient_SameRutDifferentTenant(t *testing.T) {
 	}
 
 	p2 := patientdirectory.Patient{
+		Id:       "id-2",
 		TenantId: "tenant-2",
 		Rut:      "12345678-K",
 		Name:     "Jane Doe",
@@ -104,13 +185,25 @@ func TestCreatePatient_SameRutDifferentTenant(t *testing.T) {
 	}
 }
 
-func TestCreatePatient_MissingRutOrName(t *testing.T) {
-	m, _, _, err := setupModule()
+func TestCreatePatient_MissingIdRutOrName(t *testing.T) {
+	m, _, err := setupModule()
 	if err != nil {
 		t.Fatalf("setup falló: %v", err)
 	}
 
+	pNoId := patientdirectory.Patient{
+		TenantId: "tenant-1",
+		Rut:      "12345678-K",
+		Name:     "John Doe",
+		IsActive: true,
+	}
+	_, err = m.CreatePatient(pNoId)
+	if err == nil || err.Error() != patientdirectory.ErrIdRequired.Error() {
+		t.Errorf("se esperaba ErrIdRequired, se obtuvo %v", err)
+	}
+
 	pNoRut := patientdirectory.Patient{
+		Id:       "id-1",
 		TenantId: "tenant-1",
 		Name:     "John Doe",
 		IsActive: true,
@@ -121,6 +214,7 @@ func TestCreatePatient_MissingRutOrName(t *testing.T) {
 	}
 
 	pNoName := patientdirectory.Patient{
+		Id:       "id-2",
 		TenantId: "tenant-1",
 		Rut:      "12345678-K",
 		IsActive: true,
@@ -132,18 +226,20 @@ func TestCreatePatient_MissingRutOrName(t *testing.T) {
 }
 
 func TestUpdatePatient_RutTakenByAnother(t *testing.T) {
-	m, _, _, err := setupModule()
+	m, _, err := setupModule()
 	if err != nil {
 		t.Fatalf("setup falló: %v", err)
 	}
 
 	p1, _ := m.CreatePatient(patientdirectory.Patient{
+		Id:       "id-1",
 		TenantId: "tenant-1",
 		Rut:      "11111111-1",
 		Name:     "Patient 1",
 		IsActive: true,
 	})
 	p2, _ := m.CreatePatient(patientdirectory.Patient{
+		Id:       "id-2",
 		TenantId: "tenant-1",
 		Rut:      "22222222-2",
 		Name:     "Patient 2",
@@ -160,12 +256,13 @@ func TestUpdatePatient_RutTakenByAnother(t *testing.T) {
 }
 
 func TestUpdatePatient_KeepingOwnRut(t *testing.T) {
-	m, pub, _, err := setupModule()
+	m, pub, err := setupModule()
 	if err != nil {
 		t.Fatalf("setup falló: %v", err)
 	}
 
 	p1, _ := m.CreatePatient(patientdirectory.Patient{
+		Id:       "id-1",
 		TenantId: "tenant-1",
 		Rut:      "11111111-1",
 		Name:     "Patient 1",
@@ -194,12 +291,13 @@ func TestUpdatePatient_KeepingOwnRut(t *testing.T) {
 }
 
 func TestFindByRut_NormalisesInput(t *testing.T) {
-	m, _, _, err := setupModule()
+	m, _, err := setupModule()
 	if err != nil {
 		t.Fatalf("setup falló: %v", err)
 	}
 
 	created, _ := m.CreatePatient(patientdirectory.Patient{
+		Id:       "id-1",
 		TenantId: "tenant-1",
 		Rut:      "12345678-K",
 		Name:     "John Doe",
@@ -216,12 +314,13 @@ func TestFindByRut_NormalisesInput(t *testing.T) {
 }
 
 func TestDeactivatePatient(t *testing.T) {
-	m, pub, _, err := setupModule()
+	m, pub, err := setupModule()
 	if err != nil {
 		t.Fatalf("setup falló: %v", err)
 	}
 
 	created, _ := m.CreatePatient(patientdirectory.Patient{
+		Id:       "id-1",
 		TenantId: "tenant-1",
 		Rut:      "12345678-K",
 		Name:     "John Doe",
@@ -263,6 +362,8 @@ func TestSentinelErrors(t *testing.T) {
 		{patientdirectory.ErrRutRequired, "patient rut is required"},
 		{patientdirectory.ErrNameRequired, "patient name is required"},
 		{patientdirectory.ErrTenantRequired, "patient tenant_id is required"},
+		{patientdirectory.ErrIdRequired, "patient id is required"},
+		{patientdirectory.ErrIdTaken, "patient id belongs to another tenant"},
 	}
 
 	for _, tt := range tests {

@@ -10,8 +10,7 @@ import (
 )
 
 type Deps struct {
-	IDs       model.IDGenerator // requerido — el módulo nunca genera los suyos propios
-	Publisher events.Publisher  // opcional — nil deshabilita la publicación silenciosamente
+	Publisher events.Publisher // opcional — nil deshabilita la publicación silenciosamente
 	// TenantID identifica esta instalación — el valor por defecto que opListPatients usa
 	// cuando quien llama no envía tenant_id (todo listado respaldado por
 	// crudview lo hace así).
@@ -24,7 +23,6 @@ type Deps struct {
 
 type Module struct {
 	db          *orm.DB
-	ids         model.IDGenerator
 	pub         events.Publisher
 	validateRUT func(string) (string, error)
 	tenantID    string
@@ -33,9 +31,6 @@ type Module struct {
 // New conecta el módulo a un *orm.DB ya conectado; se asume que el esquema
 // ya existe —consulte el submódulo migrate.
 func New(db *orm.DB, deps Deps) (*Module, error) {
-	if deps.IDs == nil {
-		return nil, fmt.Err("patient_directory: Deps.IDs is required")
-	}
 	if deps.ValidateRUT == nil {
 		return nil, fmt.Err("patient_directory: Deps.ValidateRUT is required")
 	}
@@ -44,7 +39,6 @@ func New(db *orm.DB, deps Deps) (*Module, error) {
 	}
 	return &Module{
 		db:          db,
-		ids:         deps.IDs,
 		pub:         deps.Publisher,
 		validateRUT: deps.ValidateRUT,
 		tenantID:    deps.TenantID,
@@ -67,6 +61,9 @@ func (m *Module) publish(topic string, payload model.Model) {
 }
 
 func (m *Module) CreatePatient(p Patient) (Patient, error) {
+	if p.Id == "" {
+		return Patient{}, ValidationError{Err: ErrIdRequired}
+	}
 	if p.TenantId == "" {
 		return Patient{}, ValidationError{Err: ErrTenantRequired}
 	}
@@ -82,6 +79,21 @@ func (m *Module) CreatePatient(p Patient) (Patient, error) {
 		return Patient{}, ValidationError{Err: err}
 	}
 	p.Rut = normRut
+
+	// Reintento idempotente: buscar por Id sin importar el tenant
+	var existingById Patient
+	qbId := m.db.Query(&existingById).Where(Patient_.Id).Eq(p.Id)
+	_, errId := ReadOnePatient(qbId, &existingById)
+	if errId == nil {
+		if existingById.TenantId == p.TenantId {
+			// Es la misma operación repetida, devolverla tal como está guardada
+			return existingById, nil
+		}
+		// Si el paciente existe con otro tenant
+		return Patient{}, ErrIdTaken
+	} else if !orm.IsNotFound(errId) {
+		return Patient{}, errId
+	}
 
 	// Verificar si el RUT ya existe para este tenant
 	existing, err := m.FindByRut(p.TenantId, p.Rut)
@@ -100,9 +112,6 @@ func (m *Module) CreatePatient(p Patient) (Patient, error) {
 		}
 	}
 
-	if p.Id == "" {
-		p.Id = m.ids.NewID()
-	}
 	p.UpdatedAt = time.Now()
 
 	if err := m.db.Create(&p); err != nil {

@@ -46,6 +46,10 @@ func (m *Module) handleErr(ctx router.Context, err error) {
 			ctx.WriteStatus(409)
 			_, _ = ctx.Write([]byte(err.Error()))
 			return
+		case ErrIdTaken:
+			ctx.WriteStatus(409)
+			_, _ = ctx.Write([]byte(err.Error()))
+			return
 		case ErrNotFound:
 			ctx.WriteStatus(404)
 			_, _ = ctx.Write([]byte(err.Error()))
@@ -120,13 +124,30 @@ func (m *Module) opUpsertPatient(ctx router.Context) {
 		_, _ = ctx.Write([]byte(err.Error()))
 		return
 	}
+	if p.Id == "" {
+		ctx.WriteStatus(400)
+		_, _ = ctx.Write([]byte(ErrIdRequired.Error()))
+		return
+	}
 	var res Patient
 	var err error
-	if p.Id == "" {
-		res, err = m.CreatePatient(p)
+
+	_, getErr := m.GetPatient(p.TenantId, p.Id)
+	if getErr != nil {
+		var isNotFound bool
+		if e, ok := getErr.(domainError); ok && e == ErrNotFound {
+			isNotFound = true
+		}
+		if isNotFound {
+			res, err = m.CreatePatient(p)
+		} else {
+			m.handleErr(ctx, getErr)
+			return
+		}
 	} else {
 		res, err = m.UpdatePatient(p)
 	}
+
 	if err != nil {
 		m.handleErr(ctx, err)
 		return

@@ -35,7 +35,6 @@ func main() {
 	broker := &mock.Broker{}
 
 	mod, err := patientdirectory.New(db, patientdirectory.Deps{
-		IDs:         ids,
 		Publisher:   broker,
 		TenantID:    demoTenantID,
 		ValidateRUT: trustedip.ValidateRUT,

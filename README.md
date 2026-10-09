@@ -61,7 +61,6 @@ import (
 )
 
 deps := patientdirectory.Deps{
-    IDs: idGenerator, // model.IDGenerator
     Publisher: eventPublisher, // events.Publisher (opcional)
     ValidateRUT: func(rut string) (string, error) {
         // Normaliza y valida el RUT retornando la cadena canónica

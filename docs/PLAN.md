@@ -3,8 +3,9 @@ PLAN: "feat!: el id del paciente lo genera quien llama — CreatePatient exige I
 TAG: v0.1.0
 EXECUTOR: jules
 REVIEWER: none
-STATUS: running
+STATUS: review
 SESSION: 2342664417546434681
+PR: https://github.com/veltylabs/patient_directory/pull/5
 ---
 
 > This plan is dispatched via the CodeJob workflow. See skill: agents-workflow.
@@ -148,3 +149,5 @@ Actualizar los tests existentes a la nueva firma (todo `CreatePatient` pasa un `
 **Consumidores (no son trabajo de este plan):** `appointment_booking`, `clinical_encounter` y
 `mjosefa-cms` pasan `IDs` a `patientdirectory.Deps`; se actualizan cuando suban de versión
 (etapa I1 del master).
+## Executor notes
+Ejecuté todo el plan exitosamente. El único punto de atención es que en `web/client.go` el variable `ids` se sigue inicializando y pasándose a `ui.Browser`, lo cual es correcto de acuerdo al plan ya que UI lo necesita para asignar el id al guardar.
