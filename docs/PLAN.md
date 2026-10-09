@@ -3,8 +3,9 @@ PLAN: "feat!: el id del paciente lo genera quien llama — CreatePatient exige I
 TAG: v0.1.0
 EXECUTOR: jules
 REVIEWER: none
-STATUS: running
+STATUS: review
 SESSION: 2342664417546434681
+PR: https://github.com/veltylabs/patient_directory/pull/5
 ---
 
 > This plan is dispatched via the CodeJob workflow. See skill: agents-workflow.
