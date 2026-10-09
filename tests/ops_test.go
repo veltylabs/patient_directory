@@ -126,7 +126,7 @@ func (w *mapWriter) Object(name string, val model.Encodable) {}
 func (w *mapWriter) Array(name string, n int) model.ArrayWriter { return nil }
 
 func TestOpsRegistrationAndExecution(t *testing.T) {
-	m, _, _, err := setupModule()
+	m, _, err := setupModule()
 	if err != nil {
 		t.Fatalf("setup falló: %v", err)
 	}
@@ -155,6 +155,7 @@ func TestOpsRegistrationAndExecution(t *testing.T) {
 	// Probar éxito en creación de OpUpsertPatient
 	upsertHandler := reg.ops[patientdirectory.OpUpsertPatient]
 	reqBody, _ := json.Marshal(map[string]any{
+		"id":        "id-1",
 		"tenant_id": "tenant-1",
 		"rut":       "12345678-K",
 		"name":      "John Doe",
@@ -168,7 +169,14 @@ func TestOpsRegistrationAndExecution(t *testing.T) {
 	}
 
 	// Probar error de RUT duplicado -> 409
-	ctxDup := &mockContext{body: reqBody}
+	reqBodyDup, _ := json.Marshal(map[string]any{
+		"id":        "id-2", // Different ID to test RUT duplicate
+		"tenant_id": "tenant-1",
+		"rut":       "12345678-K",
+		"name":      "John Doe",
+		"is_active": true,
+	})
+	ctxDup := &mockContext{body: reqBodyDup}
 	upsertHandler(ctxDup)
 	if ctxDup.statusCode != 409 {
 		t.Errorf("se esperaba estado 409 en RUT duplicado, se obtuvo %d", ctxDup.statusCode)

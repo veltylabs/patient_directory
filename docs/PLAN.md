@@ -148,3 +148,5 @@ Actualizar los tests existentes a la nueva firma (todo `CreatePatient` pasa un `
 **Consumidores (no son trabajo de este plan):** `appointment_booking`, `clinical_encounter` y
 `mjosefa-cms` pasan `IDs` a `patientdirectory.Deps`; se actualizan cuando suban de versión
 (etapa I1 del master).
+## Executor notes
+Ejecuté todo el plan exitosamente. El único punto de atención es que en `web/client.go` el variable `ids` se sigue inicializando y pasándose a `ui.Browser`, lo cual es correcto de acuerdo al plan ya que UI lo necesita para asignar el id al guardar.

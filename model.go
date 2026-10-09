@@ -73,6 +73,8 @@ const (
 	ErrRutRequired      domainError = "patient rut is required"
 	ErrNameRequired     domainError = "patient name is required"
 	ErrTenantRequired   domainError = "patient tenant_id is required"
+	ErrIdRequired       domainError = "patient id is required"
+	ErrIdTaken          domainError = "patient id belongs to another tenant"
 )
 
 type ValidationError struct{ Err error }

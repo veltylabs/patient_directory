@@ -46,7 +46,6 @@ func TestOpListPatients_FallsBackToModuleTenant(t *testing.T) {
 
 	db := orm.New(mem.New())
 	m, err := patientdirectory.New(db, patientdirectory.Deps{
-		IDs:         &fakeIDGen{},
 		ValidateRUT: fakeValidateRUT,
 		TenantID:    moduleTenant,
 	})
@@ -55,6 +54,7 @@ func TestOpListPatients_FallsBackToModuleTenant(t *testing.T) {
 	}
 
 	seeded, err := m.CreatePatient(patientdirectory.Patient{
+		Id:       "seeded-id",
 		TenantId: moduleTenant,
 		Rut:      "12345678-5",
 		Name:     "Ana Torres",

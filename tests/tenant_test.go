@@ -7,12 +7,13 @@ import (
 )
 
 func TestTenantIsolation(t *testing.T) {
-	m, _, _, err := setupModule()
+	m, _, err := setupModule()
 	if err != nil {
 		t.Fatalf("setup falló: %v", err)
 	}
 
 	p1, _ := m.CreatePatient(patientdirectory.Patient{
+		Id:       "id-1",
 		TenantId: "tenant-A",
 		Rut:      "11111111-1",
 		Name:     "Patient A",
@@ -20,6 +21,7 @@ func TestTenantIsolation(t *testing.T) {
 	})
 
 	p2, _ := m.CreatePatient(patientdirectory.Patient{
+		Id:       "id-2",
 		TenantId: "tenant-B",
 		Rut:      "22222222-2",
 		Name:     "Patient B",

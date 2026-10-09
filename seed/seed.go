@@ -13,6 +13,7 @@ type Data struct {
 func Load(m *patientdirectory.Module, tenantID string) (Data, error) {
 	items := []patientdirectory.Patient{
 		{
+			Id:        "demo-patient-1",
 			TenantId:  tenantID,
 			Rut:       "11111111-1",
 			Name:      "Juan Pérez",
@@ -23,6 +24,7 @@ func Load(m *patientdirectory.Module, tenantID string) (Data, error) {
 			IsActive:  true,
 		},
 		{
+			Id:        "demo-patient-2",
 			TenantId:  tenantID,
 			Rut:       "12345678-5",
 			Name:      "María González",
@@ -33,6 +35,7 @@ func Load(m *patientdirectory.Module, tenantID string) (Data, error) {
 			IsActive:  true,
 		},
 		{
+			Id:        "demo-patient-3",
 			TenantId:  tenantID,
 			Rut:       "15678432-K",
 			Name:      "Pedro Soto",

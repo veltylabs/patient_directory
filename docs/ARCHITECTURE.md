@@ -49,7 +49,6 @@ import (
 func main() {
 	// 1. Inicializar módulo patient_directory
 	patientMod, err := patientdirectory.New(db, patientdirectory.Deps{
-		IDs: idGen,
 		ValidateRUT: myRutValidator,
 		Publisher: eventPub,
 	})
