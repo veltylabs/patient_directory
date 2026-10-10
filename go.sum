@@ -54,5 +54,5 @@ webtyp.com/user v0.3.14 h1:yS0zNTdEpgx/eMvdG0IbHN9C0zxZHQ3fcnZnuVCJY7A=
 webtyp.com/user v0.3.14/go.mod h1:k7hiWfpNO9Ih2Sgk3EJltNDdgbSIy4QZA+NQmnZFlck=
 webtyp.com/view v0.6.27 h1:XkwRWlY9+AYAkt0QgWb2NF3M+vZEbALp5K3bQxiDwE4=
 webtyp.com/view v0.6.27/go.mod h1:LOB0Xt/ZddE9Gd+VntN4e2A9eFUsHqGU9Uub1GSsqLY=
-webtyp.com/widget v0.6.37 h1:+w0Jusqv8vePUbb+lnNDebQjNftta7KUZhQNPbSdP0M=
-webtyp.com/widget v0.6.37/go.mod h1:Jzxu6AYDQw0xStNNxRyNrn6K1cNtBBe7LkAy/8EI1p4=
+webtyp.com/widget v0.6.38 h1:sN9PrCGOY/r2QtSlGXxzf8QfeVZ+ylmewbDBfoRbSoM=
+webtyp.com/widget v0.6.38/go.mod h1:Jzxu6AYDQw0xStNNxRyNrn6K1cNtBBe7LkAy/8EI1p4=
