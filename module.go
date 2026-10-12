@@ -272,6 +272,68 @@ func (m *Module) DeactivatePatient(tenantID, id string) error {
 // Un paciente INACTIVO aún existe. La desactivación remueve a alguien de la
 // lista de trabajo; no desaparece a la persona, y una reserva que lo
 // referencia debe continuar resolviendo.
+// LinkPatient devuelve el id del paciente de ese RUT. Si no existe, lo crea con
+// los datos recibidos y el id de cmd. Si existe, devuelve su id guardado y NO
+// modifica ni devuelve ningún otro dato: lo llama un invitado anónimo.
+func (m *Module) LinkPatient(a LinkPatientArgs) (string, error) {
+	if a.TenantId == "" {
+		return "", ValidationError{Err: ErrTenantRequired}
+	}
+	if a.Id == "" {
+		return "", ValidationError{Err: ErrIdRequired}
+	}
+	if a.Rut == "" {
+		return "", ValidationError{Err: ErrRutRequired}
+	}
+	if a.Name == "" {
+		return "", ValidationError{Err: ErrNameRequired}
+	}
+
+	existing, err := m.FindByRut(a.TenantId, a.Rut)
+	if err == nil {
+		return existing.Id, nil
+	} else {
+		var isNotFound bool
+		if e, ok := err.(domainError); ok {
+			switch e {
+			case ErrNotFound:
+				isNotFound = true
+			}
+		}
+		if !isNotFound {
+			return "", err
+		}
+	}
+
+	p, err := m.CreatePatient(Patient{
+		Id:        a.Id,
+		TenantId:  a.TenantId,
+		Rut:       a.Rut,
+		Name:      a.Name,
+		Phone:     a.Phone,
+		Email:     a.Email,
+		IsActive:  true,
+	})
+
+	if err != nil {
+		var isAlreadyExists bool
+		if e, ok := err.(domainError); ok {
+			switch e {
+			case ErrRutAlreadyExists:
+				isAlreadyExists = true
+			}
+		}
+
+		if isAlreadyExists {
+			retryExisting, retryErr := m.FindByRut(a.TenantId, a.Rut)
+			return retryExisting.Id, retryErr
+		}
+		return "", err
+	}
+
+	return p.Id, nil
+}
+
 func (m *Module) ClientExists(tenantID, clientID string) (bool, error) {
 	if tenantID == "" || clientID == "" {
 		return false, nil

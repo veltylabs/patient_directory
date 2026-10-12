@@ -22,15 +22,19 @@ Explícitamente **no** es propietario de:
    - Una restricción de unicidad de una sola columna en `rut` fallaría en bases de datos multitenant.
    - `patient_directory` verifica la existencia del RUT en `CreatePatient` y `UpdatePatient` retornando `ErrRutAlreadyExists`. `PatientModel` no lleva la marca `Unique: true`.
 
-3. **Desactivación en lugar de Eliminación:**
+3. **Operación LinkPatient para reservas de invitados:**
+   - Devuelve solo el ID del paciente, sin modificar un paciente existente ni devolver su información de contacto sensible.
+   - Permite enlazar turnos con pacientes por su RUT cuando lo envía un usuario público/invitado de manera segura.
+
+4. **Desactivación en lugar de Eliminación:**
    - Los pacientes nunca se eliminan físicamente. `DeactivatePatient` establece `is_active = false`.
    - Los registros históricos y reservas que referencian a un ID de paciente siempre deben poder resolverse.
 
-4. **Validación de RUT Inyectada:**
+5. **Validación de RUT Inyectada:**
    - La función `Deps.ValidateRUT` se inyecta en `patientdirectory.New`.
    - El módulo no depende de ninguna librería específica de RUT ni implementa algoritmos de dígito verificador.
 
-5. **Sin Cadenas de UI / Sin Traducciones de Idioma:**
+6. **Sin Cadenas de UI / Sin Traducciones de Idioma:**
    - Los controladores y modelos retornan constantes de dominio y errores estándar.
    - La traducción de etiquetas para los usuarios finales es responsabilidad de las interfaces web/móviles consumidoras.
 

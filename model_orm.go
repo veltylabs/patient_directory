@@ -108,6 +108,87 @@ func ReadAllPatient(qb *orm.QB) (PatientList, error) {
 	return results, err
 }
 
+type LinkPatientArgs struct {
+	TenantId string
+	Id string
+	Rut string
+	Name string
+	Phone string
+	Email string
+}
+
+func (m *LinkPatientArgs) ModelName() string { return "link_patient_args" }
+
+func (m *LinkPatientArgs) Schema() []model.Field { return LinkPatientArgsModel.Fields }
+
+func (m *LinkPatientArgs) Pointers() []any { return []any{&m.TenantId, &m.Id, &m.Rut, &m.Name, &m.Phone, &m.Email} }
+
+func (m *LinkPatientArgs) IsNil() bool { return m == nil }
+
+func (m *LinkPatientArgs) EncodeFields(w model.FieldWriter) {
+	w.String("tenant_id", m.TenantId)
+	w.String("id", m.Id)
+	w.String("rut", m.Rut)
+	w.String("name", m.Name)
+	w.String("phone", m.Phone)
+	w.String("email", m.Email)
+}
+
+func (m *LinkPatientArgs) DecodeFields(r model.FieldReader) {
+	if v, ok := r.String("tenant_id"); ok { m.TenantId = v }
+	if v, ok := r.String("id"); ok { m.Id = v }
+	if v, ok := r.String("rut"); ok { m.Rut = v }
+	if v, ok := r.String("name"); ok { m.Name = v }
+	if v, ok := r.String("phone"); ok { m.Phone = v }
+	if v, ok := r.String("email"); ok { m.Email = v }
+}
+
+type LinkPatientArgsList []*LinkPatientArgs
+
+func (s *LinkPatientArgsList) Len() int             { return len(*s) }
+func (s *LinkPatientArgsList) At(i int) model.Fielder { return (*s)[i] }
+func (s *LinkPatientArgsList) Append() model.Fielder  { v := &LinkPatientArgs{}; *s = append(*s, v); return v }
+func (s *LinkPatientArgsList) IsNil() bool          { return s == nil }
+func (s *LinkPatientArgsList) EncodeFields(_ model.FieldWriter) {}
+func (s *LinkPatientArgsList) DecodeFields(_ model.FieldReader) {}
+
+func (m *LinkPatientArgs) Validate(action byte) error {
+	return model.ValidateFields(action, m)
+}
+
+type LinkPatientResult struct {
+	Id string
+}
+
+func (m *LinkPatientResult) ModelName() string { return "link_patient_result" }
+
+func (m *LinkPatientResult) Schema() []model.Field { return LinkPatientResultModel.Fields }
+
+func (m *LinkPatientResult) Pointers() []any { return []any{&m.Id} }
+
+func (m *LinkPatientResult) IsNil() bool { return m == nil }
+
+func (m *LinkPatientResult) EncodeFields(w model.FieldWriter) {
+	w.String("id", m.Id)
+}
+
+func (m *LinkPatientResult) DecodeFields(r model.FieldReader) {
+	if v, ok := r.String("id"); ok { m.Id = v }
+}
+
+type LinkPatientResultList []*LinkPatientResult
+
+func (s *LinkPatientResultList) Len() int             { return len(*s) }
+func (s *LinkPatientResultList) At(i int) model.Fielder { return (*s)[i] }
+func (s *LinkPatientResultList) Append() model.Fielder  { v := &LinkPatientResult{}; *s = append(*s, v); return v }
+func (s *LinkPatientResultList) IsNil() bool          { return s == nil }
+func (s *LinkPatientResultList) EncodeFields(_ model.FieldWriter) {}
+func (s *LinkPatientResultList) DecodeFields(_ model.FieldReader) {}
+
+func (m *LinkPatientResult) Validate(action byte) error {
+	return model.ValidateFields(action, m)
+}
+
 type ListPatientsArgs struct {
 	TenantId string
 	ActiveOnly bool
