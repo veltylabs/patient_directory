@@ -2,8 +2,9 @@
 PLAN: "feat: link_patient — vincula un paciente por RUT sin mostrar ni modificar sus datos (reserva online de invitado)"
 EXECUTOR: jules
 REVIEWER: none
-STATUS: running
+STATUS: review
 SESSION: 6559570370499122425
+PR: https://github.com/veltylabs/patient_directory/pull/6
 ---
 
 > Este plan se despacha con el flujo CodeJob. Ver skill: agents-workflow.
