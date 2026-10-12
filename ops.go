@@ -11,7 +11,10 @@ const (
 	OpFindPatientByRut  = "find_patient_by_rut"
 	OpUpsertPatient     = "upsert_patient"
 	OpDeactivatePatient = "deactivate_patient"
+	OpLinkPatient       = "link_patient"
 )
+
+const ResourcePatientLink = "patient_link"
 
 // ModelName is this module's identity: mcp.HarvestOps qualifies every op
 // below as "patient_directory.<name>" on the wire, and view.go's NewView
@@ -27,6 +30,7 @@ func (m *Module) MountOperations(reg router.OperationRegistry) {
 	reg.Operation(OpFindPatientByRut, m.opFindPatientByRut).Requires("patient", model.Read).Accepts(&FindPatientByRutArgs{})
 	reg.Operation(OpUpsertPatient, m.opUpsertPatient).Requires("patient", model.Create|model.Update).Accepts(&Patient{})
 	reg.Operation(OpDeactivatePatient, m.opDeactivatePatient).Requires("patient", model.Update).Accepts(&DeactivatePatientArgs{})
+	reg.Operation(OpLinkPatient, m.opLinkPatient).Requires(ResourcePatientLink, model.Create).Accepts(&LinkPatientArgs{})
 }
 
 var _ router.OperationModule = (*Module)(nil)
@@ -168,4 +172,24 @@ func (m *Module) opDeactivatePatient(ctx router.Context) {
 		return
 	}
 	ctx.WriteStatus(200)
+}
+
+func (m *Module) opLinkPatient(ctx router.Context) {
+	var args LinkPatientArgs
+	if err := ctx.Decode(&args); err != nil {
+		ctx.WriteStatus(400)
+		_, _ = ctx.Write([]byte(err.Error()))
+		return
+	}
+	if err := args.Validate(byte(model.Create)); err != nil {
+		ctx.WriteStatus(400)
+		_, _ = ctx.Write([]byte(err.Error()))
+		return
+	}
+	id, err := m.LinkPatient(args)
+	if err != nil {
+		m.handleErr(ctx, err)
+		return
+	}
+	_ = ctx.Encode(&LinkPatientResult{Id: id})
 }

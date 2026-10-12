@@ -22,6 +22,7 @@ This module provides its own UI sub-package `ui/`, demo data loader `seed/`, and
 | `find_patient_by_rut` | `patient` | `Read` | Busca un paciente por RUT dentro de un tenant |
 | `upsert_patient` | `patient` | `Create\|Update` | Crea un nuevo paciente o actualiza uno existente |
 | `deactivate_patient` | `patient` | `Update` | Desactiva un paciente (`is_active = false`) |
+| `link_patient` | `patient_link` | `Create` | Devuelve solo el id; nunca modifica un paciente existente. Si no existe, lo crea con los datos proporcionados. Usado para reserva online |
 
 *Nota: No existe operación de eliminación física. Los pacientes se desactivan, nunca se eliminan.*
 

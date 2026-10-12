@@ -29,6 +29,25 @@ var PatientModel = model.Definition{
 	},
 }
 
+var LinkPatientArgsModel = model.Definition{
+	Name: "link_patient_args",
+	Fields: model.Fields{
+		{Name: "tenant_id", Type: model.Text(), NotNull: true},
+		{Name: "id", Type: model.Text(), NotNull: true},
+		{Name: "rut", Type: input.Rut(), NotNull: true, Permitted: model.Permitted{Minimum: 1, Maximum: 12}},
+		{Name: "name", Type: input.Text(), NotNull: true, Permitted: model.Permitted{Minimum: 1, Maximum: 255}},
+		{Name: "phone", Type: input.Phone(), NotNull: true},
+		{Name: "email", Type: input.Email(), NotNull: true},
+	},
+}
+
+var LinkPatientResultModel = model.Definition{
+	Name: "link_patient_result",
+	Fields: model.Fields{
+		{Name: "id", Type: model.Text()},
+	},
+}
+
 var ListPatientsArgsModel = model.Definition{
 	Name: "list_patients_args",
 	Fields: model.Fields{

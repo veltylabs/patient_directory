@@ -259,6 +259,52 @@ func (m *Module) DeactivatePatient(tenantID, id string) error {
 	return nil
 }
 
+// LinkPatient devuelve el id del paciente de ese RUT. Si no existe, lo crea con
+// los datos recibidos y el id de cmd. Si existe, devuelve su id guardado y NO
+// modifica ni devuelve ningún otro dato: lo llama un invitado anónimo.
+func (m *Module) LinkPatient(a LinkPatientArgs) (string, error) {
+	if a.TenantId == "" {
+		return "", ValidationError{Err: ErrTenantRequired}
+	}
+	if a.Id == "" {
+		return "", ValidationError{Err: ErrIdRequired}
+	}
+	if a.Rut == "" {
+		return "", ValidationError{Err: ErrRutRequired}
+	}
+	if a.Name == "" {
+		return "", ValidationError{Err: ErrNameRequired}
+	}
+
+	existing, err := m.FindByRut(a.TenantId, a.Rut)
+	if err == nil {
+		return existing.Id, nil
+	}
+	if e, ok := err.(domainError); !ok || e != ErrNotFound {
+		return "", err
+	}
+
+	p, err := m.CreatePatient(Patient{
+		Id:       a.Id,
+		TenantId: a.TenantId,
+		Rut:      a.Rut,
+		Name:     a.Name,
+		Phone:    a.Phone,
+		Email:    a.Email,
+		IsActive: true,
+	})
+
+	if err != nil {
+		if e, ok := err.(domainError); ok && e == ErrRutAlreadyExists {
+			again, err := m.FindByRut(a.TenantId, a.Rut)
+			return again.Id, err
+		}
+		return "", err
+	}
+
+	return p.Id, nil
+}
+
 // ClientExists informa si un paciente con este ID pertenece a este tenant.
 // Satisface el puerto estrecho DirectoryReader que un módulo de agendamiento
 // declara de su lado (ClientExists(tenantId, clientId) (bool, error)) —
