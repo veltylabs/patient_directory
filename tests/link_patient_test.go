@@ -131,7 +131,7 @@ func TestLinkPatient_NewRutCreatesWithCallerId(t *testing.T) {
 type brokenConn struct{ storage.Conn }
 type brokenScanner struct{}
 
-func (brokenScanner) Scan(dest ...any) error { return fmt.Err("error simulado") }
+func (brokenScanner) Scan(dest ...any) error                             { return fmt.Err("error simulado") }
 func (c *brokenConn) QueryRow(query string, args ...any) storage.Scanner { return brokenScanner{} }
 func (c *brokenConn) Query(query string, args ...any) (storage.Rows, error) {
 	return nil, fmt.Err("error simulado")
@@ -161,6 +161,7 @@ type lieOnceConn struct {
 	lied bool
 }
 type noRowsScanner struct{}
+
 func (noRowsScanner) Scan(dest ...any) error { return storage.ErrNoRows }
 
 func (c *lieOnceConn) QueryRow(q string, args ...any) storage.Scanner {
@@ -173,10 +174,13 @@ func (c *lieOnceConn) QueryRow(q string, args ...any) storage.Scanner {
 
 func TestLinkPatient_RaceOnCreateReturnsExistingId(t *testing.T) {
 	conn := mem.New()
-	m1, _ := patientdirectory.New(orm.New(conn), patientdirectory.Deps{
+	m1, err1 := patientdirectory.New(orm.New(conn), patientdirectory.Deps{
 		ValidateRUT: func(s string) (string, error) { return s, nil },
 		TenantID:    "t1",
 	})
+	if err1 != nil {
+		t.Fatal(err1)
+	}
 
 	_, err := m1.CreatePatient(patientdirectory.Patient{
 		Id:       "existente",
@@ -189,10 +193,13 @@ func TestLinkPatient_RaceOnCreateReturnsExistingId(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	m2, _ := patientdirectory.New(orm.New(&lieOnceConn{Conn: conn}), patientdirectory.Deps{
+	m2, err2 := patientdirectory.New(orm.New(&lieOnceConn{Conn: conn}), patientdirectory.Deps{
 		ValidateRUT: func(s string) (string, error) { return s, nil },
 		TenantID:    "t1",
 	})
+	if err2 != nil {
+		t.Fatal(err2)
+	}
 
 	id, err := m2.LinkPatient(patientdirectory.LinkPatientArgs{
 		TenantId: "t1",
@@ -206,6 +213,17 @@ func TestLinkPatient_RaceOnCreateReturnsExistingId(t *testing.T) {
 	}
 	if id != "existente" {
 		t.Fatalf("expected existente id, got %v", id)
+	}
+
+	patients, _ := m2.ListPatients("t1", patientdirectory.PatientFilter{})
+	count := 0
+	for _, p := range patients {
+		if p.Rut == "1-9" {
+			count++
+		}
+	}
+	if count != 1 {
+		t.Fatalf("expected exactly 1 patient with RUT 1-9, got %d", count)
 	}
 }
 
@@ -240,7 +258,7 @@ func TestLinkPatient_InvalidRutIsRejected(t *testing.T) {
 			}
 			return s, nil
 		},
-		TenantID:    "t1",
+		TenantID: "t1",
 	})
 	_, err := m.LinkPatient(patientdirectory.LinkPatientArgs{
 		TenantId: "t1",
@@ -312,11 +330,11 @@ func TestOpLinkPatient_ResponseCarriesOnlyId(t *testing.T) {
 	m.MountOperations(r)
 
 	ctx := &mock.Context{
-		InBody:   []byte(`{"tenant_id":"t1","id":"caller-id","rut":"1-9","name":"Name","phone":"+123456789","email":"e@e.c"}`),
+		InBody: []byte(`{"tenant_id":"t1","id":"caller-id","rut":"1-9","name":"Name","phone":"+123456789","email":"e@e.c"}`),
 	}
 	ctx.SetUserID("user1")
 
-	r.Invoke("OP", "/" + patientdirectory.OpLinkPatient, ctx)
+	r.Invoke("OP", "/"+patientdirectory.OpLinkPatient, ctx)
 
 	if ctx.Status != 0 && ctx.Status != 200 {
 		t.Fatalf("expected 200, got %v, body: %s", ctx.Status, string(ctx.ResponseBody()))
@@ -394,7 +412,7 @@ func TestOpLinkPatient_RequiresPatientLinkCreate(t *testing.T) {
 
 	for _, info := range r.Routes() {
 		// Mock routes operation names to paths, so we check path
-		if info.Path == "/" + patientdirectory.OpLinkPatient {
+		if info.Path == "/"+patientdirectory.OpLinkPatient {
 			if string(info.Resource) != patientdirectory.ResourcePatientLink {
 				t.Fatalf("expected resource %v, got %v", patientdirectory.ResourcePatientLink, info.Resource)
 			}

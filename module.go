@@ -259,19 +259,6 @@ func (m *Module) DeactivatePatient(tenantID, id string) error {
 	return nil
 }
 
-// ClientExists informa si un paciente con este ID pertenece a este tenant.
-// Satisface el puerto estrecho DirectoryReader que un módulo de agendamiento
-// declara de su lado (ClientExists(tenantId, clientId) (bool, error)) —
-// estructuralmente, sin adaptador y sin importar en ninguna dirección.
-//
-// Un registro faltante es (false, nil), NO un error: "este ID no es nuestro" es
-// la respuesta que el solicitante pidió. Solo una falla real de almacenamiento
-// retorna un error no nulo, para que un llamador nunca confunda una base de
-// datos caída con una respuesta negativa limpia.
-//
-// Un paciente INACTIVO aún existe. La desactivación remueve a alguien de la
-// lista de trabajo; no desaparece a la persona, y una reserva que lo
-// referencia debe continuar resolviendo.
 // LinkPatient devuelve el id del paciente de ese RUT. Si no existe, lo crea con
 // los datos recibidos y el id de cmd. Si existe, devuelve su id guardado y NO
 // modifica ni devuelve ningún otro dato: lo llama un invitado anónimo.
@@ -292,41 +279,25 @@ func (m *Module) LinkPatient(a LinkPatientArgs) (string, error) {
 	existing, err := m.FindByRut(a.TenantId, a.Rut)
 	if err == nil {
 		return existing.Id, nil
-	} else {
-		var isNotFound bool
-		if e, ok := err.(domainError); ok {
-			switch e {
-			case ErrNotFound:
-				isNotFound = true
-			}
-		}
-		if !isNotFound {
-			return "", err
-		}
+	}
+	if e, ok := err.(domainError); !ok || e != ErrNotFound {
+		return "", err
 	}
 
 	p, err := m.CreatePatient(Patient{
-		Id:        a.Id,
-		TenantId:  a.TenantId,
-		Rut:       a.Rut,
-		Name:      a.Name,
-		Phone:     a.Phone,
-		Email:     a.Email,
-		IsActive:  true,
+		Id:       a.Id,
+		TenantId: a.TenantId,
+		Rut:      a.Rut,
+		Name:     a.Name,
+		Phone:    a.Phone,
+		Email:    a.Email,
+		IsActive: true,
 	})
 
 	if err != nil {
-		var isAlreadyExists bool
-		if e, ok := err.(domainError); ok {
-			switch e {
-			case ErrRutAlreadyExists:
-				isAlreadyExists = true
-			}
-		}
-
-		if isAlreadyExists {
-			retryExisting, retryErr := m.FindByRut(a.TenantId, a.Rut)
-			return retryExisting.Id, retryErr
+		if e, ok := err.(domainError); ok && e == ErrRutAlreadyExists {
+			again, err := m.FindByRut(a.TenantId, a.Rut)
+			return again.Id, err
 		}
 		return "", err
 	}
@@ -334,6 +305,19 @@ func (m *Module) LinkPatient(a LinkPatientArgs) (string, error) {
 	return p.Id, nil
 }
 
+// ClientExists informa si un paciente con este ID pertenece a este tenant.
+// Satisface el puerto estrecho DirectoryReader que un módulo de agendamiento
+// declara de su lado (ClientExists(tenantId, clientId) (bool, error)) —
+// estructuralmente, sin adaptador y sin importar en ninguna dirección.
+//
+// Un registro faltante es (false, nil), NO un error: "este ID no es nuestro" es
+// la respuesta que el solicitante pidió. Solo una falla real de almacenamiento
+// retorna un error no nulo, para que un llamador nunca confunda una base de
+// datos caída con una respuesta negativa limpia.
+//
+// Un paciente INACTIVO aún existe. La desactivación remueve a alguien de la
+// lista de trabajo; no desaparece a la persona, y una reserva que lo
+// referencia debe continuar resolviendo.
 func (m *Module) ClientExists(tenantID, clientID string) (bool, error) {
 	if tenantID == "" || clientID == "" {
 		return false, nil
