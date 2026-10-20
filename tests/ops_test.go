@@ -15,6 +15,7 @@ type mockRoute struct{}
 func (m *mockRoute) Requires(resource model.Resource, action model.Action) router.Route {
 	return m
 }
+func (m *mockRoute) RequiresMFA() router.Route { return m }
 func (m *mockRoute) Authenticated() router.Route { return m }
 func (m *mockRoute) Public() router.Route        { return m }
 func (m *mockRoute) Accepts(args model.Fielder) router.Route {
@@ -55,6 +56,8 @@ func (c *mockContext) SetCookie(cookie router.Cookie)   {}
 func (c *mockContext) Cookie(name string) (router.Cookie, bool) { return router.Cookie{}, false }
 func (c *mockContext) SetUserID(id string)              {}
 func (c *mockContext) UserID() string                   { return "" }
+func (c *mockContext) Assurance() model.Assurance       { return 0 }
+func (c *mockContext) SetAssurance(a model.Assurance)   {}
 
 func (c *mockContext) Decode(into model.Decodable) error {
 	var m map[string]any
