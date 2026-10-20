@@ -18,13 +18,13 @@ var PatientModel = model.Definition{
 	Fields: model.Fields{
 		{Name: "id", Type: model.Text(), DB: &model.FieldDB{PK: true}, OmitEmpty: true},
 		{Name: "tenant_id", Type: model.Text(), NotNull: true},
-		{Name: "rut", Type: input.Rut(), NotNull: true, Permitted: model.Permitted{Minimum: 1, Maximum: 12}},
-		{Name: "name", Type: input.Text(), NotNull: true, Permitted: model.Permitted{Minimum: 1, Maximum: 255}},
-		{Name: "birthdate", Type: input.Date(), OmitEmpty: true},
-		{Name: "phone", Type: input.Phone(), OmitEmpty: true},
-		{Name: "email", Type: input.Email(), OmitEmpty: true},
-		{Name: "address", Type: input.Address(), OmitEmpty: true},
-		{Name: "is_active", Type: input.Checkbox(), NotNull: true},
+		{Name: "rut", Type: input.Rut(), Label: "Rut", NotNull: true, Permitted: model.Permitted{Minimum: 1, Maximum: 12}},
+		{Name: "name", Type: input.Text(), Label: "Name", NotNull: true, Permitted: model.Permitted{Minimum: 1, Maximum: 255}},
+		{Name: "birthdate", Type: input.Date(), Label: "Birthdate", OmitEmpty: true},
+		{Name: "phone", Type: input.Phone(), Label: "Phone", OmitEmpty: true},
+		{Name: "email", Type: input.Email(), Label: "Email", OmitEmpty: true},
+		{Name: "address", Type: input.Address(), Label: "Address", OmitEmpty: true},
+		{Name: "is_active", Type: input.Checkbox(), Label: "Active", NotNull: true},
 		{Name: "updated_at", Type: model.NanoTime(), OmitEmpty: true},
 	},
 }
@@ -34,10 +34,10 @@ var LinkPatientArgsModel = model.Definition{
 	Fields: model.Fields{
 		{Name: "tenant_id", Type: model.Text(), NotNull: true},
 		{Name: "id", Type: model.Text(), NotNull: true},
-		{Name: "rut", Type: input.Rut(), NotNull: true, Permitted: model.Permitted{Minimum: 1, Maximum: 12}},
-		{Name: "name", Type: input.Text(), NotNull: true, Permitted: model.Permitted{Minimum: 1, Maximum: 255}},
-		{Name: "phone", Type: input.Phone(), NotNull: true},
-		{Name: "email", Type: input.Email(), NotNull: true},
+		{Name: "rut", Type: input.Rut(), Label: "Rut", NotNull: true, Permitted: model.Permitted{Minimum: 1, Maximum: 12}},
+		{Name: "name", Type: input.Text(), Label: "Name", NotNull: true, Permitted: model.Permitted{Minimum: 1, Maximum: 255}},
+		{Name: "phone", Type: input.Phone(), Label: "Phone", NotNull: true},
+		{Name: "email", Type: input.Email(), Label: "Email", NotNull: true},
 	},
 }
 
@@ -70,7 +70,7 @@ var FindPatientByRutArgsModel = model.Definition{
 	Name: "find_patient_by_rut_args",
 	Fields: model.Fields{
 		{Name: "tenant_id", Type: model.Text()},
-		{Name: "rut", Type: input.Rut()},
+		{Name: "rut", Type: input.Rut(), Label: "Rut"},
 	},
 }
 
