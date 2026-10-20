@@ -112,7 +112,7 @@ func (m *Module) CreatePatient(p Patient) (Patient, error) {
 		}
 	}
 
-	p.UpdatedAt = time.Now()
+	p.UpdatedAt = time.NowNano()
 
 	if err := m.db.Create(&p); err != nil {
 		return Patient{}, err
@@ -167,7 +167,7 @@ func (m *Module) UpdatePatient(p Patient) (Patient, error) {
 		}
 	}
 
-	p.UpdatedAt = time.Now()
+	p.UpdatedAt = time.NowNano()
 
 	if err := m.db.Update(&p, storage.Eq(Patient_.Id, p.Id), storage.Eq(Patient_.TenantId, p.TenantId)); err != nil {
 		return Patient{}, err
@@ -250,7 +250,7 @@ func (m *Module) DeactivatePatient(tenantID, id string) error {
 		return err
 	}
 	p.IsActive = false
-	p.UpdatedAt = time.Now()
+	p.UpdatedAt = time.NowNano()
 
 	if err := m.db.Update(&p, storage.Eq(Patient_.Id, p.Id), storage.Eq(Patient_.TenantId, p.TenantId)); err != nil {
 		return err

@@ -25,7 +25,7 @@ var PatientModel = model.Definition{
 		{Name: "email", Type: input.Email(), OmitEmpty: true},
 		{Name: "address", Type: input.Address(), OmitEmpty: true},
 		{Name: "is_active", Type: input.Checkbox(), NotNull: true},
-		{Name: "updated_at", Type: model.Int(), OmitEmpty: true},
+		{Name: "updated_at", Type: model.NanoTime(), OmitEmpty: true},
 	},
 }
 

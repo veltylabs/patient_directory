@@ -149,3 +149,8 @@ git diff --stat main --diff-filter=D                            # → empty: not
 | 2 | generated | `model_orm.go` |
 | 3 | uses | every file listed in Stage 3 |
 | 4 | docs | `README.md`, `docs/*`, `AGENTS.md` when they mention instants |
+
+## Executor notes
+- Stage 0 and Stage 2: Needed to use `GOPRIVATE=webtyp.com/*` and `~/go/bin/ormc` for successful execution in sandbox.
+- Stage 2: Installed `ormc@latest` instead of `ormc@v0.1.23` to satisfy project memory guidelines and go version requirements.
+- Stage 4: Found no occurrences of "time.Now()", "unix seconds", "nanoseconds", or "int64" in `README.md`, `docs/ARCHITECTURE.md` or `AGENTS.md`, so no document edits were made.
