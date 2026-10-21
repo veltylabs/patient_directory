@@ -13,7 +13,7 @@ SESSION: 4821894243876703182
 Part of [BUILD_DESTINATIONS_MASTER_PLAN.md](https://github.com/webtyp/docs/blob/main/BUILD_DESTINATIONS_MASTER_PLAN.md) (D1, D4, D6, D15):
 - The browser entry for the demo page is `web/browser.go` (`//go:build browser`) which compiles into `browser.wasm`.
 - `ui/browser.go` carries `//go:build browser`.
-- `ui/svg.go` keeps `//go:build !wasm` (D7, read by `sitec` at build time).
+- `ui/svg.go` keeps `//go:build !browser` (D7, read by `sitec` at build time).
 - Rename `web/client.go` to `web/browser.go` and replace its build tag `//go:build wasm` with `//go:build browser`.
 - Any test that exercises browser UI (e.g. `tests/ui_test.go` calling `ui.Browser`) must carry `//go:build browser`.
 
@@ -64,3 +64,7 @@ A PR that does not compile, or whose tests could not run, is a failed delivery. 
 |---|---|---|
 | 1 | `web/browser.go`, `ui/browser.go` | Rename to `web/browser.go` with `//go:build browser`, add tag to `ui/browser.go` |
 | 2 | tests, docs | Verify tests pass with `gotest ./...` |
+
+## Executor notes
+- `ui/svg.go` tag was changed to `//go:build !browser` in accordance with the review feedback, as it makes sense for it to be mutually exclusive with `//go:build browser`. This also aligns with the documentation change in `AGENTS.md` to properly document the new state of `ui/` files.
+- `AGENTS.md` was also updated to reflect `ui/` now containing files with build tags.
