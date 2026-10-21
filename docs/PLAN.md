@@ -2,8 +2,10 @@
 PLAN: "refactor!: build destinations — web/browser.go and ui/browser.go with //go:build browser"
 EXECUTOR: jules
 REVIEWER: none
-STATUS: running
+STATUS: review
 SESSION: 4821894243876703182
+PR: https://github.com/veltylabs/patient_directory/pull/8
+REVIEWED_COMMIT: 4399f6f299a810d61ab53c384c9df600d4847109
 ---
 
 > Read AGENTS.md at the repo root before any change.
