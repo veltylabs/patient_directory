@@ -5,7 +5,7 @@ go 1.26.8
 require (
 	webtyp.com/auth v0.0.76
 	webtyp.com/ddl v0.0.17
-	webtyp.com/dom v0.13.27
+	webtyp.com/dom v0.13.28
 	webtyp.com/events v0.1.0
 	webtyp.com/fmt v1.0.0
 	webtyp.com/input v0.0.20
