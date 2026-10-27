@@ -2,8 +2,10 @@
 PLAN: "feat!: list rows declared on the model fields (Row/Options); Item() removed"
 EXECUTOR: jules
 REVIEWER: none
-STATUS: running
+STATUS: review
 SESSION: 2128409979842163626
+PR: https://github.com/veltylabs/patient_directory/pull/9
+REVIEWED_COMMIT: 25a54f23b7e7697bd8537d8669e0a6e2f7c57643
 ---
 
 > Read AGENTS.md at the repo root before any change.
@@ -130,3 +132,7 @@ rewrite what is already Spanish), and add a short usage example to exported-symb
 | 4 | `ops.go` | save answers the record |
 | 5 | `tests/*` | `model.RowOf` |
 | 6 | docs, comments, `lang.json` | Spanish |
+
+## Executor notes
+- Handled removing `ids` unused variable from `web/browser.go`.
+- Ran `ormc` and updated `view.go` to properly use the modified `Caller` with the new records.
