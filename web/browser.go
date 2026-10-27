@@ -20,7 +20,7 @@ import (
 const demoTenantID = "demo"
 
 func main() {
-	ids, err := unixid.NewUnixID()
+	_, err := unixid.NewUnixID()
 	if err != nil {
 		panic(err)
 	}

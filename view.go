@@ -6,13 +6,6 @@ import (
 	"webtyp.com/view"
 )
 
-// Item implementa view.Itemizer. Description es el RUT porque es lo que una
-// persona en el mostrador sostiene y lee de vuelta para confirmar que seleccionó
-// al paciente correcto.
-func (p *Patient) Item() view.Item {
-	return view.Item{ID: p.Id, Label: p.Name, Description: p.Rut}
-}
-
 const titlePatients = "Patients"
 
 // NewView construye el Presenter de pacientes —el motor agnóstico de renderizado
@@ -25,7 +18,7 @@ const titlePatients = "Patients"
 // renderizador no dibuja controles de eliminación. Un paciente se desactiva,
 // nunca se elimina (consulte AGENTS.md).
 func NewView(caller router.Caller, opts ...view.Option) view.Presenter {
-	b := view.NewCallerLister(caller,
+	b := view.NewCallerLister(view.NewRecords().Caller(caller),
 		view.Ops{Module: ModelName, List: OpListPatients, Save: OpUpsertPatient},
 		func() model.ModelSlice { return &PatientList{} })
 	allOpts := append([]view.Option{view.WithTitle(titlePatients)}, opts...)

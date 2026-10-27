@@ -7,11 +7,11 @@ Este módulo es propietario de la **identidad** y **datos de contacto** del paci
 
 ## View and demo
 
-This module provides its own UI sub-package `ui/`, demo data loader `seed/`, and runnable demo in `web/`:
+Este módulo provee su propio subpaquete UI `ui/`, cargador de datos de prueba `seed/`, y demostración ejecutable en `web/`:
 
-- `ui`: Exports `ID`, `Label`, and `Browser(caller router.Caller, ids model.IDGenerator, tenantID string) (platformd.UIModule, error)`.
-- `seed`: Exports `Load(m *patientdirectory.Module, tenantID string) (Data, error)` which writes through module domain methods to populate initial seed patients.
-- `web`: Run `webtyp` at the repository root to open the demo — in-browser, in-memory, no login.
+- `ui`: Exporta `ID`, `Label`, y `Browser(caller router.Caller, ids model.IDGenerator, tenantID string) (platformd.UIModule, error)`.
+- `seed`: Exporta `Load(m *patientdirectory.Module, tenantID string) (Data, error)` que escribe mediante métodos de dominio del módulo para rellenar pacientes de prueba iniciales.
+- `web`: Ejecute `webtyp` en la raíz del repositorio para abrir la demo — en el navegador, en memoria, sin inicio de sesión.
 
 ## Operaciones
 

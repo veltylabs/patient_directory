@@ -130,3 +130,7 @@ rewrite what is already Spanish), and add a short usage example to exported-symb
 | 4 | `ops.go` | save answers the record |
 | 5 | `tests/*` | `model.RowOf` |
 | 6 | docs, comments, `lang.json` | Spanish |
+
+## Executor notes
+- Handled removing `ids` unused variable from `web/browser.go`.
+- Ran `ormc` and updated `view.go` to properly use the modified `Caller` with the new records.
