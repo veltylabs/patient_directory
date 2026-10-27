@@ -28,14 +28,18 @@ type Module struct {
 	tenantID    string
 }
 
+func depErr(name string) error {
+	return fmt.Err("patient_directory: Deps."+name, "is required")
+}
+
 // New conecta el módulo a un *orm.DB ya conectado; se asume que el esquema
 // ya existe —consulte el submódulo migrate.
 func New(db *orm.DB, deps Deps) (*Module, error) {
 	if deps.ValidateRUT == nil {
-		return nil, fmt.Err("patient_directory: Deps.ValidateRUT is required")
+		return nil, depErr("ValidateRUT")
 	}
 	if deps.TenantID == "" {
-		return nil, fmt.Err("patient_directory: Deps.TenantID is required")
+		return nil, depErr("TenantID")
 	}
 	return &Module{
 		db:          db,

@@ -1,0 +1,20 @@
+{
+  "languages": ["es", "zh", "hi", "ar", "pt", "fr", "de", "ru"],
+  "keys": {
+    "Active": ["Activo", "", "", "", "", "", "", ""],
+    "Address": ["Dirección", "", "", "", "", "", "", ""],
+    "Birthdate": ["Fecha de nacimiento", "", "", "", "", "", "", ""],
+    "Email": ["Correo electrónico", "", "", "", "", "", "", ""],
+    "Name": ["Nombre", "", "", "", "", "", "", ""],
+    "Patient directory: personal data, contact information and identification.": ["Directorio de pacientes: datos personales, de contacto e identificación.", "", "", "", "", "", "", ""],
+    "Patients": ["Pacientes", "", "", "", "", "", "", ""],
+    "Phone": ["Teléfono", "", "", "", "", "", "", ""],
+    "Rut": ["RUT", "", "", "", "", "", "", ""],
+    "active only": ["solo activos", "", "", "", "", "", "", ""],
+    "is required": ["es requerido", "", "", "", "", "", "", ""],
+    "limit": ["límite", "", "", "", "", "", "", ""],
+    "offset": ["desplazamiento", "", "", "", "", "", "", ""],
+    "tenant id": ["id de arrendatario", "", "", "", "", "", "", ""],
+    "updated at": ["actualizado el", "", "", "", "", "", "", ""]
+  }
+}

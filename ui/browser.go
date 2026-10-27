@@ -1,25 +1,23 @@
-//go:build browser
-
 package ui
 
 import (
 	patientdirectory "github.com/veltylabs/patient_directory"
-	"webtyp.com/layout/crudview"
-	"webtyp.com/layout/platformd"
-	"webtyp.com/model"
+	"webtyp.com/lang"
 	"webtyp.com/router"
-	"webtyp.com/svg"
+	"webtyp.com/view"
 )
 
-// Browser construye la vista de este módulo para el registro de módulos UI.
-func Browser(caller router.Caller, ids model.IDGenerator, tenantID string) (platformd.UIModule, error) {
-	v, err := crudview.New(crudview.Config{
-		ParentID:  ID,
-		Presenter: patientdirectory.NewView(caller),
-		IDs:       ids,
-	})
-	if err != nil {
-		return nil, err
+const descPatients lang.Text = "Patient directory: personal data, contact information and identification."
+
+// Screens declara las pantallas que este módulo ofrece al menú de la app.
+func Screens(caller router.Caller) []view.Screen {
+	return []view.Screen{
+		{
+			ID:         ID,
+			Label:      Label,
+			Icon:       ID,
+			Permission: "patient",
+			Presenter:  patientdirectory.NewView(caller, view.WithDescription(descPatients)),
+		},
 	}
-	return platformd.NewUIModule(ID, Label, svg.Icon(ID), v), nil
 }

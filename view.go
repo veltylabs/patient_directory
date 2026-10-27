@@ -24,9 +24,10 @@ const titlePatients = "Patients"
 // capacidades de escritura cuyos nombres de op no están vacíos, por lo que un
 // renderizador no dibuja controles de eliminación. Un paciente se desactiva,
 // nunca se elimina (consulte AGENTS.md).
-func NewView(caller router.Caller) view.Presenter {
+func NewView(caller router.Caller, opts ...view.Option) view.Presenter {
 	b := view.NewCallerLister(caller,
 		view.Ops{Module: ModelName, List: OpListPatients, Save: OpUpsertPatient},
 		func() model.ModelSlice { return &PatientList{} })
-	return view.New(b, &Patient{}, view.WithTitle(titlePatients))
+	allOpts := append([]view.Option{view.WithTitle(titlePatients)}, opts...)
+	return view.New(b, &Patient{}, allOpts...)
 }

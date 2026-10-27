@@ -9,7 +9,7 @@ import (
 	"webtyp.com/auth/trusted_ip"
 	. "webtyp.com/dom"
 	"webtyp.com/events/mock"
-	"webtyp.com/layout/platformd"
+	"webtyp.com/html"
 	"webtyp.com/orm"
 	"webtyp.com/router/loopback"
 	"webtyp.com/storage/mem"
@@ -18,13 +18,6 @@ import (
 
 // demoTenantID es el único tenant de esta demo ejecutable en navegador.
 const demoTenantID = "demo"
-
-// demoUser es la identidad fija que muestra el chasis demo.
-type demoUser struct{}
-
-func (demoUser) UserName() string    { return "Demo" }
-func (demoUser) UserAvatar() string  { return "" }
-func (demoUser) UserRoles() []string { return []string{"Administrador"} }
 
 func main() {
 	ids, err := unixid.NewUnixID()
@@ -48,17 +41,13 @@ func main() {
 	}
 
 	caller := loopback.WithTenant(demoTenantID, mod)
-	v, err := ui.Browser(caller, ids, demoTenantID)
-	if err != nil {
-		panic(err)
-	}
+	screens := ui.Screens(caller)
 
-	p := &platformd.Platform{
-		AppName:   ui.Label + " — demo",
-		User:      demoUser{},
-		Modules:   []platformd.UIModule{v},
-		DefaultID: ui.ID,
-	}
-	Append("body", p)
+	appNode := html.Div().Child(
+		html.H1().Text(string(screens[0].Label)),
+		html.P().Text("Demo render sin webtyp.com/layout"),
+	)
+
+	Append("body", appNode)
 	select {}
 }
