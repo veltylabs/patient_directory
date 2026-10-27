@@ -2,8 +2,10 @@
 PLAN: "feat!: list rows declared on the model fields (Row/Options); Item() removed"
 EXECUTOR: jules
 REVIEWER: none
-STATUS: running
+STATUS: review
 SESSION: 2128409979842163626
+PR: https://github.com/veltylabs/patient_directory/pull/9
+REVIEWED_COMMIT: 25a54f23b7e7697bd8537d8669e0a6e2f7c57643
 ---
 
 > Read AGENTS.md at the repo root before any change.
