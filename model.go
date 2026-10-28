@@ -18,8 +18,8 @@ var PatientModel = model.Definition{
 	Fields: model.Fields{
 		{Name: "id", Type: model.Text(), DB: &model.FieldDB{PK: true}, OmitEmpty: true},
 		{Name: "tenant_id", Type: model.Text(), NotNull: true},
-		{Name: "rut", Type: input.Rut(), Label: "Rut", NotNull: true, Permitted: model.Permitted{Minimum: 1, Maximum: 12}, Row: model.RowDetail},
-		{Name: "name", Type: input.Text(), Label: "Name", NotNull: true, Permitted: model.Permitted{Minimum: 1, Maximum: 255}, Row: model.RowTitle},
+		{Name: "rut", Type: input.Rut(), Label: "Rut", NotNull: true, Permitted: model.Permitted{Minimum: 1, Maximum: 12}, Item: model.ItemDescription},
+		{Name: "name", Type: input.Text(), Label: "Name", NotNull: true, Permitted: model.Permitted{Minimum: 1, Maximum: 255}, Item: model.ItemLabel},
 		{Name: "birthdate", Type: input.Date(), Label: "Birthdate", OmitEmpty: true},
 		{Name: "phone", Type: input.Phone(), Label: "Phone", OmitEmpty: true},
 		{Name: "email", Type: input.Email(), Label: "Email", OmitEmpty: true},
@@ -33,9 +33,9 @@ var LinkPatientArgsModel = model.Definition{
 	Name: "link_patient_args",
 	Fields: model.Fields{
 		{Name: "tenant_id", Type: model.Text(), NotNull: true},
-		{Name: "id", Type: model.Text(), NotNull: true},
-		{Name: "rut", Type: input.Rut(), Label: "Rut", NotNull: true, Permitted: model.Permitted{Minimum: 1, Maximum: 12}, Row: model.RowDetail},
-		{Name: "name", Type: input.Text(), Label: "Name", NotNull: true, Permitted: model.Permitted{Minimum: 1, Maximum: 255}, Row: model.RowTitle},
+		{Name: "id", Type: model.Text(), DB: &model.FieldDB{PK: true}, NotNull: true},
+		{Name: "rut", Type: input.Rut(), Label: "Rut", NotNull: true, Permitted: model.Permitted{Minimum: 1, Maximum: 12}, Item: model.ItemDescription},
+		{Name: "name", Type: input.Text(), Label: "Name", NotNull: true, Permitted: model.Permitted{Minimum: 1, Maximum: 255}, Item: model.ItemLabel},
 		{Name: "phone", Type: input.Phone(), Label: "Phone", NotNull: true},
 		{Name: "email", Type: input.Email(), Label: "Email", NotNull: true},
 	},

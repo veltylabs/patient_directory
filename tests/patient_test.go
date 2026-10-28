@@ -2,7 +2,6 @@ package tests
 
 import (
 	"testing"
-	"webtyp.com/model"
 
 	patientdirectory "github.com/veltylabs/patient_directory"
 )
@@ -374,22 +373,22 @@ func TestSentinelErrors(t *testing.T) {
 	}
 }
 
-func TestRowsDeclaredOnFields(t *testing.T) {
+func TestItemsDeclaredOnFields(t *testing.T) {
 	rec := patientdirectory.Patient{
 		Id:   "123",
 		Rut:  "12345678-5",
 		Name: "Ana Torres",
 	}
 
-	row := model.RowOf(&rec)
+	item := rec.Item()
 
-	if row.Title != "Ana Torres" {
-		t.Errorf("expected Title to be 'Ana Torres', got %q", row.Title)
+	if item.Label != "Ana Torres" {
+		t.Errorf("expected Label to be 'Ana Torres', got %q", item.Label)
 	}
-	if row.Detail != "12345678-5" {
-		t.Errorf("expected Detail to be '12345678-5', got %q", row.Detail)
+	if item.Description != "12345678-5" {
+		t.Errorf("expected Description to be '12345678-5', got %q", item.Description)
 	}
-	if row.Badge != "" {
-		t.Errorf("expected Badge to be empty, got %q", row.Badge)
+	if item.Badge != "" {
+		t.Errorf("expected Badge to be empty, got %q", item.Badge)
 	}
 }

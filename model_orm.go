@@ -68,6 +68,10 @@ func (m *Patient) Validate(action byte) error {
 	return model.ValidateFields(action, m)
 }
 
+func (m *Patient) Item() model.Item {
+	return model.Item{ID: m.Id, Label: m.Name, Description: m.Rut}
+}
+
 var Patient_ = struct {
 	Id string
 	TenantId string
@@ -155,6 +159,43 @@ func (s *LinkPatientArgsList) DecodeFields(_ model.FieldReader) {}
 
 func (m *LinkPatientArgs) Validate(action byte) error {
 	return model.ValidateFields(action, m)
+}
+
+func (m *LinkPatientArgs) Item() model.Item {
+	return model.Item{ID: m.Id, Label: m.Name, Description: m.Rut}
+}
+
+var LinkPatientArgs_ = struct {
+	TenantId string
+	Id string
+	Rut string
+	Name string
+	Phone string
+	Email string
+}{
+	TenantId: "tenant_id",
+	Id: "id",
+	Rut: "rut",
+	Name: "name",
+	Phone: "phone",
+	Email: "email",
+}
+
+func ReadOneLinkPatientArgs(qb *orm.QB, model *LinkPatientArgs) (*LinkPatientArgs, error) {
+	err := qb.ReadOne()
+	if err != nil {
+		return nil, err
+	}
+	return model, nil
+}
+
+func ReadAllLinkPatientArgs(qb *orm.QB) (LinkPatientArgsList, error) {
+	var results LinkPatientArgsList
+	err := qb.ReadAll(
+		func() model.Model { return &LinkPatientArgs{} },
+		func(m model.Model) { results = append(results, m.(*LinkPatientArgs)) },
+	)
+	return results, err
 }
 
 type LinkPatientResult struct {
