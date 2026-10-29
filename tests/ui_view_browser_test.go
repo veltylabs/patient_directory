@@ -2,7 +2,9 @@ package tests
 
 import (
 	"testing"
+	"webtyp.com/model"
 
+	patientdirectory "github.com/veltylabs/patient_directory"
 	"github.com/veltylabs/patient_directory/ui"
 )
 
@@ -19,7 +21,7 @@ func TestUI_Screens(t *testing.T) {
 	if s.ID != ui.ID {
 		t.Errorf("ID = %q, want %q", s.ID, ui.ID)
 	}
-	if string(s.Permission) != "patient" {
+	if string(s.Permission) != string(model.ResourceOf(&patientdirectory.PatientModel)) {
 		t.Errorf("Permission = %q, want patient", s.Permission)
 	}
 	if s.Presenter.Description() == "" {

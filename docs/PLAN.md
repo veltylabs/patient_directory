@@ -2,7 +2,8 @@
 PLAN: "refactor: module review — errors via rpc.WriteError, resources from tables, screens via view.MountSave, foreign keys, translations"
 EXECUTOR: jules
 REVIEWER: none
-STATUS: running
+STATUS: review
+PR: https://github.com/veltylabs/patient_directory/pull/12
 SESSION: 12909021095516528827
 ---
 

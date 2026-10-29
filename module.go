@@ -66,21 +66,21 @@ func (m *Module) publish(topic string, payload model.Model) {
 
 func (m *Module) CreatePatient(p Patient) (Patient, error) {
 	if p.Id == "" {
-		return Patient{}, ValidationError{Err: ErrIdRequired}
+		return Patient{}, &model.FieldError{Field: "id", Err: ErrIdRequired}
 	}
 	if p.TenantId == "" {
-		return Patient{}, ValidationError{Err: ErrTenantRequired}
+		return Patient{}, &model.FieldError{Field: "tenant_id", Err: ErrTenantRequired}
 	}
 	if p.Rut == "" {
-		return Patient{}, ValidationError{Err: ErrRutRequired}
+		return Patient{}, &model.FieldError{Field: "rut", Err: ErrRutRequired}
 	}
 	if p.Name == "" {
-		return Patient{}, ValidationError{Err: ErrNameRequired}
+		return Patient{}, &model.FieldError{Field: "name", Err: ErrNameRequired}
 	}
 
 	normRut, err := m.validateRUT(p.Rut)
 	if err != nil {
-		return Patient{}, ValidationError{Err: err}
+		return Patient{}, &model.FieldError{Field: "rut", Err: err}
 	}
 	p.Rut = normRut
 
@@ -105,11 +105,8 @@ func (m *Module) CreatePatient(p Patient) (Patient, error) {
 		return Patient{}, ErrRutAlreadyExists
 	} else if err != nil {
 		var isNotFound bool
-		if e, ok := err.(domainError); ok {
-			switch e {
-			case ErrNotFound:
-				isNotFound = true
-			}
+		if model.KindOf(err) == model.ErrorNotFound {
+			isNotFound = true
 		}
 		if !isNotFound {
 			return Patient{}, err
@@ -131,13 +128,13 @@ func (m *Module) UpdatePatient(p Patient) (Patient, error) {
 		return Patient{}, ErrNotFound
 	}
 	if p.TenantId == "" {
-		return Patient{}, ValidationError{Err: ErrTenantRequired}
+		return Patient{}, &model.FieldError{Field: "tenant_id", Err: ErrTenantRequired}
 	}
 	if p.Rut == "" {
-		return Patient{}, ValidationError{Err: ErrRutRequired}
+		return Patient{}, &model.FieldError{Field: "rut", Err: ErrRutRequired}
 	}
 	if p.Name == "" {
-		return Patient{}, ValidationError{Err: ErrNameRequired}
+		return Patient{}, &model.FieldError{Field: "name", Err: ErrNameRequired}
 	}
 
 	// Verificar que el paciente existente pertenezca al tenant
@@ -148,7 +145,7 @@ func (m *Module) UpdatePatient(p Patient) (Patient, error) {
 
 	normRut, err := m.validateRUT(p.Rut)
 	if err != nil {
-		return Patient{}, ValidationError{Err: err}
+		return Patient{}, &model.FieldError{Field: "rut", Err: err}
 	}
 	p.Rut = normRut
 
@@ -159,12 +156,9 @@ func (m *Module) UpdatePatient(p Patient) (Patient, error) {
 			return Patient{}, ErrRutAlreadyExists
 		} else if err != nil {
 			var isNotFound bool
-			if e, ok := err.(domainError); ok {
-				switch e {
-				case ErrNotFound:
-					isNotFound = true
-				}
-			}
+			if model.KindOf(err) == model.ErrorNotFound {
+			isNotFound = true
+		}
 			if !isNotFound {
 				return Patient{}, err
 			}
@@ -268,23 +262,23 @@ func (m *Module) DeactivatePatient(tenantID, id string) error {
 // modifica ni devuelve ningún otro dato: lo llama un invitado anónimo.
 func (m *Module) LinkPatient(a LinkPatientArgs) (string, error) {
 	if a.TenantId == "" {
-		return "", ValidationError{Err: ErrTenantRequired}
+		return "", &model.FieldError{Field: "tenant_id", Err: ErrTenantRequired}
 	}
 	if a.Id == "" {
-		return "", ValidationError{Err: ErrIdRequired}
+		return "", &model.FieldError{Field: "id", Err: ErrIdRequired}
 	}
 	if a.Rut == "" {
-		return "", ValidationError{Err: ErrRutRequired}
+		return "", &model.FieldError{Field: "rut", Err: ErrRutRequired}
 	}
 	if a.Name == "" {
-		return "", ValidationError{Err: ErrNameRequired}
+		return "", &model.FieldError{Field: "name", Err: ErrNameRequired}
 	}
 
 	existing, err := m.FindByRut(a.TenantId, a.Rut)
 	if err == nil {
 		return existing.Id, nil
 	}
-	if e, ok := err.(domainError); !ok || e != ErrNotFound {
+	if model.KindOf(err) != model.ErrorNotFound {
 		return "", err
 	}
 
@@ -299,9 +293,12 @@ func (m *Module) LinkPatient(a LinkPatientArgs) (string, error) {
 	})
 
 	if err != nil {
-		if e, ok := err.(domainError); ok && e == ErrRutAlreadyExists {
-			again, err := m.FindByRut(a.TenantId, a.Rut)
-			return again.Id, err
+		if err == ErrRutAlreadyExists {
+			again, findErr := m.FindByRut(a.TenantId, a.Rut)
+			if findErr == nil {
+				return again.Id, nil
+			}
+			return "", findErr
 		}
 		return "", err
 	}
@@ -327,11 +324,8 @@ func (m *Module) ClientExists(tenantID, clientID string) (bool, error) {
 		return false, nil
 	}
 	_, err := m.GetPatient(tenantID, clientID)
-	if e, ok := err.(domainError); ok {
-		switch e {
-		case ErrNotFound:
-			return false, nil
-		}
+	if model.KindOf(err) == model.ErrorNotFound {
+		return false, nil
 	}
 	if err != nil {
 		return false, err

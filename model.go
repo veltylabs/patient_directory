@@ -13,6 +13,8 @@ import (
 // de columna única, y un RUT es único por TENANT, no globalmente. La restricción
 // se aplica en CreatePatient contra ErrRutAlreadyExists —la misma regla de capa de
 // aplicación que device_manager aplica a una IP de dispositivo.
+var ResourcePatientLink = model.FeatureResource("patient_link")
+
 var PatientModel = model.Definition{
 	Name: "patient",
 	Fields: model.Fields{
@@ -82,23 +84,18 @@ var DeactivatePatientArgsModel = model.Definition{
 	},
 }
 
-type domainError string
-
-func (e domainError) Error() string { return string(e) }
-
 const (
-	ErrNotFound         domainError = "patient not found"
-	ErrRutAlreadyExists domainError = "patient rut already exists in this tenant"
-	ErrRutRequired      domainError = "patient rut is required"
-	ErrNameRequired     domainError = "patient name is required"
-	ErrTenantRequired   domainError = "patient tenant_id is required"
-	ErrIdRequired       domainError = "patient id is required"
-	ErrIdTaken          domainError = "patient id belongs to another tenant"
+	ErrNotFound         model.NotFound = "patient not found"
+	ErrRutAlreadyExists model.Conflict = "patient rut already exists in this tenant"
+	ErrRutRequired      model.Invalid  = "patient rut is required"
+	ErrNameRequired     model.Invalid  = "patient name is required"
+	ErrTenantRequired   model.Invalid  = "patient tenant_id is required"
+	ErrIdRequired       model.Invalid  = "patient id is required"
+	ErrIdTaken          model.Conflict = "patient id belongs to another tenant"
+	ErrCannotRead       model.Invalid  = "patient_directory: cannot read the request"
 )
 
-type ValidationError struct{ Err error }
 
-func (v ValidationError) Error() string { return v.Err.Error() }
 
 // <module>.<entity>.<past-tense-verb> — tenant_id va en la carga útil (payload),
 // nunca en el nombre del tema (topic).
