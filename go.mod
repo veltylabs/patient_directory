@@ -3,7 +3,7 @@ module github.com/veltylabs/patient_directory
 go 1.26.8
 
 require (
-	webtyp.com/auth v0.0.86
+	webtyp.com/auth v0.0.87
 	webtyp.com/ddl v0.0.32
 	webtyp.com/dom v0.13.29
 	webtyp.com/events v0.1.0
