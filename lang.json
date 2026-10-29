@@ -1,20 +1,20 @@
 {
   "languages": ["es", "zh", "hi", "ar", "pt", "fr", "de", "ru"],
   "keys": {
-    "Active": ["Activo", "", "", "", "", "", "", ""],
-    "Address": ["Dirección", "", "", "", "", "", "", ""],
-    "Birthdate": ["Fecha de nacimiento", "", "", "", "", "", "", ""],
-    "Email": ["Correo electrónico", "", "", "", "", "", "", ""],
-    "Name": ["Nombre", "", "", "", "", "", "", ""],
-    "Patient directory: personal data, contact information and identification.": ["Directorio de pacientes: datos personales, de contacto e identificación.", "", "", "", "", "", "", ""],
-    "Patients": ["Pacientes", "", "", "", "", "", "", ""],
-    "Phone": ["Teléfono", "", "", "", "", "", "", ""],
-    "Rut": ["RUT", "", "", "", "", "", "", ""],
-    "active only": ["solo activos", "", "", "", "", "", "", ""],
-    "is required": ["es requerido", "", "", "", "", "", "", ""],
-    "limit": ["límite", "", "", "", "", "", "", ""],
-    "offset": ["desplazamiento", "", "", "", "", "", "", ""],
-    "tenant id": ["id de arrendatario", "", "", "", "", "", "", ""],
-    "updated at": ["actualizado el", "", "", "", "", "", "", ""]
+    "Active": ["Activo", "活跃", "सक्रिय", "نشط", "Ativo", "Actif", "Aktiv", "Активный"],
+    "Address": ["Dirección", "地址", "पता", "عنوان", "Endereço", "Adresse", "Adresse", "Адрес"],
+    "Birthdate": ["Fecha de nacimiento", "出生日期", "जन्म तिथि", "تاريخ الميلاد", "Data de nascimento", "Date de naissance", "Geburtsdatum", "Дата рождения"],
+    "Email": ["Correo electrónico", "电子邮件", "ईमेल", "بريد إلكتروني", "E-mail", "E-mail", "E-Mail", "Эл. почта"],
+    "Name": ["Nombre", "姓名", "नाम", "اسم", "Nome", "Nom", "Name", "Имя"],
+    "Patient directory: personal data, contact information and identification.": ["Directorio de pacientes: datos personales, información de contacto e identificación.", "患者名录：个人数据、联系方式和身份识别。", "रोगी निर्देशिका: व्यक्तिगत डेटा, संपर्क जानकारी और पहचान।", "دليل المرضى: البيانات الشخصية ومعلومات الاتصال والهوية.", "Diretório de pacientes: dados pessoais, informações de contato e identificação.", "Répertoire des patients: données personnelles, coordonnées et identification.", "Patientenverzeichnis: personenbezogene Daten, Kontaktinformationen und Identifikation.", "Справочник пациентов: личные данные, контактная информация и идентификация."],
+    "Patients": ["Pacientes", "患者", "रोगी", "المرضى", "Pacientes", "Patients", "Patienten", "Пациенты"],
+    "Phone": ["Teléfono", "电话", "फ़ोन", "هاتف", "Telefone", "Téléphone", "Telefon", "Телефон"],
+    "Rut": ["RUT", "RUT", "RUT", "RUT", "RUT", "RUT", "RUT", "RUT"],
+    "active only": ["solo activos", "仅活跃", "केवल सक्रिय", "النشط فقط", "apenas ativos", "actifs uniquement", "nur aktiv", "только активные"],
+    "is required": ["es requerido", "是必需的", "आवश्यक है", "مطلوب", "é obrigatório", "est requis", "ist erforderlich", "обязательно"],
+    "limit": ["límite", "限制", "सीमा", "حد", "limite", "limite", "Limit", "лимит"],
+    "offset": ["desplazamiento", "偏移量", "ऑफसेट", "إزاحة", "deslocamento", "décalage", "Versatz", "смещение"],
+    "tenant id": ["id de tenant", "租户ID", "टेनेंट आईडी", "معرف المستأجر", "id do locatário", "identifiant du locataire", "Mandanten-ID", "id арендатора"],
+    "updated at": ["actualizado el", "更新时间", "अद्यतन समय", "تم التحديث في", "atualizado em", "mis à jour le", "aktualisiert am", "обновлено в"]
   }
 }

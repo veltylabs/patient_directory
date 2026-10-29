@@ -30,13 +30,13 @@ func TestTenantIsolation(t *testing.T) {
 
 	// Aislamiento entre tenants para GetPatient
 	_, err = m.GetPatient("tenant-B", p1.Id)
-	if err == nil || err.Error() != "patient not found" {
+	if err == nil || err != patientdirectory.ErrNotFound {
 		t.Errorf("se esperaba ErrNotFound al consultar un paciente de tenant-A en tenant-B, se obtuvo %v", err)
 	}
 
 	// Aislamiento entre tenants para FindByRut
 	_, err = m.FindByRut("tenant-B", p1.Rut)
-	if err == nil || err.Error() != "patient not found" {
+	if err == nil || err != patientdirectory.ErrNotFound {
 		t.Errorf("se esperaba ErrNotFound al consultar un RUT de tenant-A en tenant-B, se obtuvo %v", err)
 	}
 

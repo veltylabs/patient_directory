@@ -30,7 +30,7 @@ func TestLinkPatient_MissingFields(t *testing.T) {
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
 			_, err := m.LinkPatient(c.args)
-			if err == nil || err.Error() != c.err.Error() {
+			if err == nil || model.KindOf(err) != model.KindOf(c.err) {
 				t.Fatalf("expected error %v, got %v", c.err, err)
 			}
 		})
@@ -245,8 +245,8 @@ func TestLinkPatient_IdTakenByOtherTenant(t *testing.T) {
 		Rut:      "1-9",
 		Name:     "Name",
 	})
-	if err == nil || err.Error() != patientdirectory.ErrIdTaken.Error() {
-		t.Fatalf("expected ErrIdTaken, got %v", err)
+	if err == nil || model.KindOf(err) != model.ErrorConflict {
+		t.Fatalf("expected conflict, got %v", err)
 	}
 }
 
@@ -254,7 +254,7 @@ func TestLinkPatient_InvalidRutIsRejected(t *testing.T) {
 	m, _ := patientdirectory.New(orm.New(mem.New()), patientdirectory.Deps{
 		ValidateRUT: func(s string) (string, error) {
 			if s == "bad" {
-				return "", patientdirectory.ValidationError{Err: fmt.Err("invalid rut")}
+				return "", &model.FieldError{Err: fmt.Err("invalid rut")}
 			}
 			return s, nil
 		},
@@ -413,7 +413,7 @@ func TestOpLinkPatient_RequiresPatientLinkCreate(t *testing.T) {
 	for _, info := range r.Routes() {
 		// Mock routes operation names to paths, so we check path
 		if info.Path == "/"+patientdirectory.OpLinkPatient {
-			if string(info.Resource) != patientdirectory.ResourcePatientLink {
+			if info.Resource != patientdirectory.ResourcePatientLink {
 				t.Fatalf("expected resource %v, got %v", patientdirectory.ResourcePatientLink, info.Resource)
 			}
 			if info.Action != model.Create {

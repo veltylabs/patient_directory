@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"testing"
 
+	wjson "webtyp.com/json"
 	"webtyp.com/model"
 	"webtyp.com/router"
 
@@ -60,13 +61,7 @@ func (c *mockContext) Assurance() model.Assurance       { return 0 }
 func (c *mockContext) SetAssurance(a model.Assurance)   {}
 
 func (c *mockContext) Decode(into model.Decodable) error {
-	var m map[string]any
-	if err := json.Unmarshal(c.body, &m); err != nil {
-		return err
-	}
-	r := &mapReader{m: m}
-	into.DecodeFields(r)
-	return nil
+	return wjson.Decode(c.body, into)
 }
 
 func (c *mockContext) Encode(v model.Encodable) error {
@@ -158,11 +153,15 @@ func TestOpsRegistrationAndExecution(t *testing.T) {
 	// Probar éxito en creación de OpUpsertPatient
 	upsertHandler := reg.ops[patientdirectory.OpUpsertPatient]
 	reqBody, _ := json.Marshal(map[string]any{
-		"id":        "id-1",
-		"tenant_id": "tenant-1",
-		"rut":       "12345678-K",
-		"name":      "John Doe",
-		"is_active": true,
+		"records": []any{
+			map[string]any{
+				"id":        "id-1",
+				"tenant_id": "tenant-1",
+				"rut":       "12345678-K",
+				"name":      "John Doe",
+				"is_active": true,
+			},
+		},
 	})
 	ctx := &mockContext{body: reqBody}
 	upsertHandler(ctx)
@@ -173,11 +172,15 @@ func TestOpsRegistrationAndExecution(t *testing.T) {
 
 	// Probar error de RUT duplicado -> 409
 	reqBodyDup, _ := json.Marshal(map[string]any{
-		"id":        "id-2", // Different ID to test RUT duplicate
-		"tenant_id": "tenant-1",
-		"rut":       "12345678-K",
-		"name":      "John Doe",
-		"is_active": true,
+		"records": []any{
+			map[string]any{
+				"id":        "id-2", // Different ID to test RUT duplicate
+				"tenant_id": "tenant-1",
+				"rut":       "12345678-K",
+				"name":      "John Doe",
+				"is_active": true,
+			},
+		},
 	})
 	ctxDup := &mockContext{body: reqBodyDup}
 	upsertHandler(ctxDup)
