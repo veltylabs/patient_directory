@@ -121,3 +121,8 @@ GOPRIVATE=webtyp.com/*,github.com/veltylabs/* GOFLAGS=-mod=mod gotest
 | 5 | `lang.json`, `ui/`, `model.go` | `langc sync .` clean |
 | 6 | `tests/*`, demo | suite green, screenshots in PR |
 | 7 | `README.md` | text present |
+
+## Executor notes
+- `view.MountSave` implementation required exact lambda parameters and error casting setup which was fully accommodated.
+- We updated tests to appropriately assert the new `rpc.WriteError` payloads mapping to 400, 404, and 409 error HTTP status codes respectively.
+- For `ui/browser.go`, the permission value was successfully adapted to `string(model.ResourceOf(&patientdirectory.PatientModel))`.
