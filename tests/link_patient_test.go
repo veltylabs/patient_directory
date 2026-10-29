@@ -245,7 +245,7 @@ func TestLinkPatient_IdTakenByOtherTenant(t *testing.T) {
 		Rut:      "1-9",
 		Name:     "Name",
 	})
-	if err == nil || err.Error() != patientdirectory.ErrIdTaken.Error() {
+	if model.KindOf(err) != model.ErrorConflict {
 		t.Fatalf("expected ErrIdTaken, got %v", err)
 	}
 }
@@ -254,7 +254,7 @@ func TestLinkPatient_InvalidRutIsRejected(t *testing.T) {
 	m, _ := patientdirectory.New(orm.New(mem.New()), patientdirectory.Deps{
 		ValidateRUT: func(s string) (string, error) {
 			if s == "bad" {
-				return "", patientdirectory.ValidationError{Err: fmt.Err("invalid rut")}
+				return "", &model.FieldError{Field: "rut", Err: fmt.Err("invalid rut")}
 			}
 			return s, nil
 		},
@@ -413,7 +413,7 @@ func TestOpLinkPatient_RequiresPatientLinkCreate(t *testing.T) {
 	for _, info := range r.Routes() {
 		// Mock routes operation names to paths, so we check path
 		if info.Path == "/"+patientdirectory.OpLinkPatient {
-			if string(info.Resource) != patientdirectory.ResourcePatientLink {
+			if info.Resource != patientdirectory.ResourcePatientLink {
 				t.Fatalf("expected resource %v, got %v", patientdirectory.ResourcePatientLink, info.Resource)
 			}
 			if info.Action != model.Create {

@@ -2,10 +2,8 @@
 PLAN: "refactor: module review — errors via rpc.WriteError, resources from tables, screens via view.MountSave, foreign keys, translations"
 EXECUTOR: jules
 REVIEWER: none
-STATUS: review
+STATUS: running
 SESSION: 9442250684339317826
-PR: https://github.com/veltylabs/patient_directory/pull/11
-REVIEWED_COMMIT: 2aee255c0560b0627490f225b140750e1e60ee3c
 ---
 
 > Read AGENTS.md at the repo root before any change.
@@ -123,8 +121,3 @@ GOPRIVATE=webtyp.com/*,github.com/veltylabs/* GOFLAGS=-mod=mod gotest
 | 5 | `lang.json`, `ui/`, `model.go` | `langc sync .` clean |
 | 6 | `tests/*`, demo | suite green, screenshots in PR |
 | 7 | `README.md` | text present |
-
-## Executor notes
-- `view.MountSave` implementation required exact lambda parameters and error casting setup which was fully accommodated.
-- We updated tests to appropriately assert the new `rpc.WriteError` payloads mapping to 400, 404, and 409 error HTTP status codes respectively.
-- For `ui/browser.go`, the permission value was successfully adapted to `string(model.ResourceOf(&patientdirectory.PatientModel))`.

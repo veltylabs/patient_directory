@@ -5,4 +5,4 @@ package ui
 const ID = "patient_directory"
 
 // Label es el texto descriptivo del ítem de navegación.
-const Label = "Pacientes"
+const Label = "Patients"

@@ -1,6 +1,8 @@
 package tests
 
 import (
+	"webtyp.com/model"
+
 	"testing"
 
 	patientdirectory "github.com/veltylabs/patient_directory"
@@ -30,13 +32,13 @@ func TestTenantIsolation(t *testing.T) {
 
 	// Aislamiento entre tenants para GetPatient
 	_, err = m.GetPatient("tenant-B", p1.Id)
-	if err == nil || err.Error() != "patient not found" {
+	if model.KindOf(err) != model.ErrorNotFound {
 		t.Errorf("se esperaba ErrNotFound al consultar un paciente de tenant-A en tenant-B, se obtuvo %v", err)
 	}
 
 	// Aislamiento entre tenants para FindByRut
 	_, err = m.FindByRut("tenant-B", p1.Rut)
-	if err == nil || err.Error() != "patient not found" {
+	if model.KindOf(err) != model.ErrorNotFound {
 		t.Errorf("se esperaba ErrNotFound al consultar un RUT de tenant-A en tenant-B, se obtuvo %v", err)
 	}
 

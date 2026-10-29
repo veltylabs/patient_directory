@@ -1,20 +1,20 @@
 {
   "languages": ["es", "zh", "hi", "ar", "pt", "fr", "de", "ru"],
   "keys": {
-    "Active": ["Activo", "", "", "", "", "", "", ""],
-    "Address": ["Dirección", "", "", "", "", "", "", ""],
-    "Birthdate": ["Fecha de nacimiento", "", "", "", "", "", "", ""],
-    "Email": ["Correo electrónico", "", "", "", "", "", "", ""],
-    "Name": ["Nombre", "", "", "", "", "", "", ""],
-    "Patient directory: personal data, contact information and identification.": ["Directorio de pacientes: datos personales, de contacto e identificación.", "", "", "", "", "", "", ""],
-    "Patients": ["Pacientes", "", "", "", "", "", "", ""],
-    "Phone": ["Teléfono", "", "", "", "", "", "", ""],
-    "Rut": ["RUT", "", "", "", "", "", "", ""],
-    "active only": ["solo activos", "", "", "", "", "", "", ""],
-    "is required": ["es requerido", "", "", "", "", "", "", ""],
-    "limit": ["límite", "", "", "", "", "", "", ""],
-    "offset": ["desplazamiento", "", "", "", "", "", "", ""],
-    "tenant id": ["id de arrendatario", "", "", "", "", "", "", ""],
-    "updated at": ["actualizado el", "", "", "", "", "", "", ""]
+    "Active": ["Activo", "Active", "Active", "Active", "Active", "Active", "Active", "Active"],
+    "Address": ["Dirección", "Address", "Address", "Address", "Address", "Address", "Address", "Address"],
+    "Birthdate": ["Fecha de nacimiento", "Birthdate", "Birthdate", "Birthdate", "Birthdate", "Birthdate", "Birthdate", "Birthdate"],
+    "Email": ["Correo electrónico", "Email", "Email", "Email", "Email", "Email", "Email", "Email"],
+    "Name": ["Nombre", "Name", "Name", "Name", "Name", "Name", "Name", "Name"],
+    "Patient directory: personal data, contact information and identification.": ["Directorio de pacientes: datos personales, de contacto e identificación.", "Patient directory: personal data, contact information and identification.", "Patient directory: personal data, contact information and identification.", "Patient directory: personal data, contact information and identification.", "Patient directory: personal data, contact information and identification.", "Patient directory: personal data, contact information and identification.", "Patient directory: personal data, contact information and identification.", "Patient directory: personal data, contact information and identification."],
+    "Patients": ["Pacientes", "Patients", "Patients", "Patients", "Patients", "Patients", "Patients", "Patients"],
+    "Phone": ["Teléfono", "Phone", "Phone", "Phone", "Phone", "Phone", "Phone", "Phone"],
+    "Rut": ["RUT", "Rut", "Rut", "Rut", "Rut", "Rut", "Rut", "Rut"],
+    "active only": ["solo activos", "active only", "active only", "active only", "active only", "active only", "active only", "active only"],
+    "is required": ["es requerido", "is required", "is required", "is required", "is required", "is required", "is required", "is required"],
+    "limit": ["límite", "limit", "limit", "limit", "limit", "limit", "limit", "limit"],
+    "offset": ["desplazamiento", "offset", "offset", "offset", "offset", "offset", "offset", "offset"],
+    "tenant id": ["id de arrendatario", "tenant id", "tenant id", "tenant id", "tenant id", "tenant id", "tenant id", "tenant id"],
+    "updated at": ["actualizado el", "updated at", "updated at", "updated at", "updated at", "updated at", "updated at", "updated at"]
   }
 }

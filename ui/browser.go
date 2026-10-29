@@ -3,6 +3,7 @@ package ui
 import (
 	patientdirectory "github.com/veltylabs/patient_directory"
 	"webtyp.com/lang"
+	"webtyp.com/model"
 	"webtyp.com/router"
 	"webtyp.com/view"
 )
@@ -16,7 +17,7 @@ func Screens(caller router.Caller) []view.Screen {
 			ID:         ID,
 			Label:      Label,
 			Icon:       ID,
-			Permission: "patient",
+			Permission: model.ResourceOf(&patientdirectory.PatientModel),
 			Presenter:  patientdirectory.NewView(caller, view.WithDescription(descPatients)),
 		},
 	}

@@ -1,6 +1,8 @@
 package tests
 
 import (
+	"webtyp.com/model"
+
 	"testing"
 
 	patientdirectory "github.com/veltylabs/patient_directory"
@@ -115,7 +117,7 @@ func TestCreatePatient_SameIdDifferentTenant(t *testing.T) {
 	}
 
 	_, err = m.CreatePatient(p2)
-	if err == nil || err.Error() != patientdirectory.ErrIdTaken.Error() {
+	if model.KindOf(err) != model.ErrorConflict {
 		t.Errorf("se esperaba ErrIdTaken, se obtuvo %v", err)
 	}
 }
@@ -146,7 +148,7 @@ func TestCreatePatient_DuplicateRutSameTenant(t *testing.T) {
 		IsActive: true,
 	}
 	_, err = m.CreatePatient(p2)
-	if err == nil || err.Error() != "patient rut already exists in this tenant" {
+	if model.KindOf(err) != model.ErrorConflict {
 		t.Errorf("se esperaba ErrRutAlreadyExists, se obtuvo %v", err)
 	}
 }
@@ -198,7 +200,7 @@ func TestCreatePatient_MissingIdRutOrName(t *testing.T) {
 		IsActive: true,
 	}
 	_, err = m.CreatePatient(pNoId)
-	if err == nil || err.Error() != patientdirectory.ErrIdRequired.Error() {
+	if model.KindOf(err) != model.ErrorInvalid {
 		t.Errorf("se esperaba ErrIdRequired, se obtuvo %v", err)
 	}
 
@@ -209,7 +211,7 @@ func TestCreatePatient_MissingIdRutOrName(t *testing.T) {
 		IsActive: true,
 	}
 	_, err = m.CreatePatient(pNoRut)
-	if _, ok := err.(patientdirectory.ValidationError); !ok {
+	if _, ok := err.(*model.FieldError); !ok {
 		t.Errorf("se esperaba ValidationError para RUT faltante, se obtuvo %v", err)
 	}
 
@@ -220,7 +222,7 @@ func TestCreatePatient_MissingIdRutOrName(t *testing.T) {
 		IsActive: true,
 	}
 	_, err = m.CreatePatient(pNoName)
-	if _, ok := err.(patientdirectory.ValidationError); !ok {
+	if _, ok := err.(*model.FieldError); !ok {
 		t.Errorf("se esperaba ValidationError para Name faltante, se obtuvo %v", err)
 	}
 }
@@ -249,7 +251,7 @@ func TestUpdatePatient_RutTakenByAnother(t *testing.T) {
 	// Intentar actualizar el RUT de p2 al RUT de p1
 	p2.Rut = "11111111-1"
 	_, err = m.UpdatePatient(p2)
-	if err == nil || err.Error() != "patient rut already exists in this tenant" {
+	if model.KindOf(err) != model.ErrorConflict {
 		t.Errorf("se esperaba ErrRutAlreadyExists, se obtuvo %v", err)
 	}
 	_ = p1
