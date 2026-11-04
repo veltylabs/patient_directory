@@ -1,6 +1,7 @@
 package tests
 
 import (
+	"errors"
 	"strings"
 
 	"webtyp.com/events"
@@ -19,6 +20,9 @@ func (f *fakePublisher) Publish(e events.Event) {
 }
 
 func fakeValidateRUT(rut string) (string, error) {
+	if rut == "bad" {
+		return "", errors.New("bad check digit")
+	}
 	cleaned := strings.ReplaceAll(rut, ".", "")
 	cleaned = strings.ReplaceAll(cleaned, "-", "")
 	cleaned = strings.ToUpper(cleaned)

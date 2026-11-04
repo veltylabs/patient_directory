@@ -1,6 +1,10 @@
 package patientdirectory
 
 import (
+	"github.com/veltylabs/patient_directory/kinds"
+)
+
+import (
 	"webtyp.com/input"
 	"webtyp.com/model"
 )
@@ -20,13 +24,18 @@ var PatientModel = model.Definition{
 	Fields: model.Fields{
 		{Name: "id", Type: model.Text(), DB: &model.FieldDB{PK: true}, OmitEmpty: true},
 		{Name: "tenant_id", Type: model.Text(), NotNull: true},
-		{Name: "rut", Type: input.Rut(), Label: "Rut", NotNull: true, Permitted: model.Permitted{Minimum: 1, Maximum: 12}, Item: model.ItemDescription},
+		{Name: "rut", Type: input.Text(), Label: "Document number", OmitEmpty: true, Permitted: model.Permitted{Letters: true, Numbers: true, Extra: []rune{'-', '.'}, Maximum: 30}, Item: model.ItemDescription},
+		{Name: "document_type", Type: kinds.DocumentType(), Label: "Document type", NotNull: true, Item: model.ItemDescription},
+		{Name: "document_country", Type: input.Text(), Label: "Issuing country", Help: "Two-letter country code of the passport or id card, e.g. VE, PE, HT. Empty for a Chilean RUT.", OmitEmpty: true, Permitted: model.Permitted{Letters: true, Minimum: 2, Maximum: 2}},
 		{Name: "name", Type: input.Text(), Label: "Name", NotNull: true, Permitted: model.Permitted{Minimum: 1, Maximum: 255}, Item: model.ItemLabel},
 		{Name: "birthdate", Type: input.Date(), Label: "Birthdate", OmitEmpty: true},
+		{Name: "birthdate_estimated", Type: input.Checkbox(), Label: "Estimated birth date", Help: "Mark it when the date comes from the age the patient said, not from a document."},
+		{Name: "sex", Type: input.Gender(), Label: "Sex", OmitEmpty: true},
 		{Name: "phone", Type: input.Phone(), Label: "Phone", OmitEmpty: true},
 		{Name: "email", Type: input.Email(), Label: "Email", OmitEmpty: true},
 		{Name: "address", Type: input.Address(), Label: "Address", OmitEmpty: true},
-		{Name: "is_active", Type: input.Checkbox(), Label: "Active", NotNull: true},
+		{Name: "notes", Type: input.Textarea(), Label: "Notes", Help: "Anything the front desk must know about this patient, e.g. the old paper file number.", OmitEmpty: true},
+		{Name: "is_active", Type: input.Checkbox(), Label: "Active"},
 		{Name: "updated_at", Type: model.NanoTime(), OmitEmpty: true},
 	},
 }
@@ -93,9 +102,11 @@ const (
 	ErrIdRequired       model.Invalid  = "patient id is required"
 	ErrIdTaken          model.Conflict = "patient id belongs to another tenant"
 	ErrCannotRead       model.Invalid  = "patient_directory: cannot read the request"
+
+	ErrDocumentType   model.Invalid = "the document type must be RUT, passport, foreign id card, no document or to verify"
+	ErrDocumentNumber model.Invalid = "a passport or foreign id card needs its number"
+	ErrSex            model.Invalid = "sex must be female, male or not recorded"
 )
-
-
 
 // <module>.<entity>.<past-tense-verb> — tenant_id va en la carga útil (payload),
 // nunca en el nombre del tema (topic).

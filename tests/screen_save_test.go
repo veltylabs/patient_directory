@@ -1,9 +1,9 @@
 package tests
 
 import (
-	"testing"
 	patientdirectory "github.com/veltylabs/patient_directory"
 	"github.com/veltylabs/patient_directory/ui"
+	"testing"
 	"webtyp.com/model"
 	"webtyp.com/router/loopback"
 	"webtyp.com/view"

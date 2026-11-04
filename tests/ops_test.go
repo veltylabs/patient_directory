@@ -16,7 +16,7 @@ type mockRoute struct{}
 func (m *mockRoute) Requires(resource model.Resource, action model.Action) router.Route {
 	return m
 }
-func (m *mockRoute) RequiresMFA() router.Route { return m }
+func (m *mockRoute) RequiresMFA() router.Route   { return m }
 func (m *mockRoute) Authenticated() router.Route { return m }
 func (m *mockRoute) Public() router.Route        { return m }
 func (m *mockRoute) Accepts(args model.Fielder) router.Route {
@@ -43,22 +43,25 @@ type mockContext struct {
 	respBody   []byte
 }
 
-func (c *mockContext) Method() string                   { return "POST" }
-func (c *mockContext) Path() string                     { return "/" }
-func (c *mockContext) Body() []byte                     { return c.body }
-func (c *mockContext) GetHeader(key string) string      { return "" }
-func (c *mockContext) SetHeader(key, value string)      {}
-func (c *mockContext) WriteStatus(code int)             { c.statusCode = code }
-func (c *mockContext) Write(b []byte) (int, error)      { c.respBody = append(c.respBody, b...); return len(b), nil }
-func (c *mockContext) SetValue(key, value string)       {}
-func (c *mockContext) Value(key string) string          { return "" }
-func (c *mockContext) Param(name string) string         { return "" }
-func (c *mockContext) SetCookie(cookie router.Cookie)   {}
+func (c *mockContext) Method() string              { return "POST" }
+func (c *mockContext) Path() string                { return "/" }
+func (c *mockContext) Body() []byte                { return c.body }
+func (c *mockContext) GetHeader(key string) string { return "" }
+func (c *mockContext) SetHeader(key, value string) {}
+func (c *mockContext) WriteStatus(code int)        { c.statusCode = code }
+func (c *mockContext) Write(b []byte) (int, error) {
+	c.respBody = append(c.respBody, b...)
+	return len(b), nil
+}
+func (c *mockContext) SetValue(key, value string)               {}
+func (c *mockContext) Value(key string) string                  { return "" }
+func (c *mockContext) Param(name string) string                 { return "" }
+func (c *mockContext) SetCookie(cookie router.Cookie)           {}
 func (c *mockContext) Cookie(name string) (router.Cookie, bool) { return router.Cookie{}, false }
-func (c *mockContext) SetUserID(id string)              {}
-func (c *mockContext) UserID() string                   { return "" }
-func (c *mockContext) Assurance() model.Assurance       { return 0 }
-func (c *mockContext) SetAssurance(a model.Assurance)   {}
+func (c *mockContext) SetUserID(id string)                      {}
+func (c *mockContext) UserID() string                           { return "" }
+func (c *mockContext) Assurance() model.Assurance               { return 0 }
+func (c *mockContext) SetAssurance(a model.Assurance)           {}
 
 func (c *mockContext) Decode(into model.Decodable) error {
 	return wjson.Decode(c.body, into)
@@ -113,14 +116,14 @@ type mapWriter struct {
 	m map[string]any
 }
 
-func (w *mapWriter) String(name, val string) { w.m[name] = val }
-func (w *mapWriter) Int(name string, val int64) { w.m[name] = val }
-func (w *mapWriter) Float(name string, val float64) { w.m[name] = val }
-func (w *mapWriter) Bool(name string, val bool) { w.m[name] = val }
-func (w *mapWriter) Bytes(name string, val []byte) { w.m[name] = string(val) }
-func (w *mapWriter) Null(name string) { w.m[name] = nil }
-func (w *mapWriter) Raw(name, val string) { w.m[name] = val }
-func (w *mapWriter) Object(name string, val model.Encodable) {}
+func (w *mapWriter) String(name, val string)                    { w.m[name] = val }
+func (w *mapWriter) Int(name string, val int64)                 { w.m[name] = val }
+func (w *mapWriter) Float(name string, val float64)             { w.m[name] = val }
+func (w *mapWriter) Bool(name string, val bool)                 { w.m[name] = val }
+func (w *mapWriter) Bytes(name string, val []byte)              { w.m[name] = string(val) }
+func (w *mapWriter) Null(name string)                           { w.m[name] = nil }
+func (w *mapWriter) Raw(name, val string)                       { w.m[name] = val }
+func (w *mapWriter) Object(name string, val model.Encodable)    {}
 func (w *mapWriter) Array(name string, n int) model.ArrayWriter { return nil }
 
 func TestOpsRegistrationAndExecution(t *testing.T) {
