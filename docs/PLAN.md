@@ -2,6 +2,8 @@
 PLAN: "feat!: six-verb plain API (GetPatient, FindPatient, CreatePatient); struct methods unexported; LinkPatient and ClientExists removed; module/"
 EXECUTOR: jules
 REVIEWER: none
+STATUS: running
+SESSION: 434415614690636480
 ---
 
 > Read AGENTS.md at the repo root before any change.
