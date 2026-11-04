@@ -69,3 +69,25 @@ func main() {
 	_ = patientMod
 }
 ```
+
+## Documento de identidad
+
+El paciente se identifica por su **id interno**, no por un documento: muchos pacientes extranjeros no tienen RUT, a
+veces solo el pasaporte de su país, y a veces nada a mano. Exigir el RUT frenaba la atención.
+
+| `document_type` | Qué es | Validación |
+|---|---|---|
+| `rut` (por defecto) | RUT chileno | dígito verificador; se normaliza |
+| `passport` | pasaporte de cualquier país (OACI 9303: hasta 9 letras y dígitos) | número obligatorio; se guarda en mayúsculas |
+| `foreign_id` | cédula de identidad de otro país | número obligatorio; se guarda en mayúsculas |
+| `none` | sin documento a mano | número y país vacíos |
+| `unverified` | ingresado pero inválido | se guarda tal cual; recepción lo corrige |
+
+No se repite la combinación (tipo, país, número) dentro de un tenant, y solo cuando hay número y el tipo no es
+`unverified`: dos pacientes sin documento pueden convivir. Es el modelo de HL7 FHIR (`Patient.identifier` =
+{tipo, emisor, número}).
+
+### ¿Por qué el teléfono no es un identificador?
+
+Una familia comparte el número, un menor usa el de su madre y la gente cambia de número: si fuera único, rechazaría a
+pacientes reales. Sirve para **buscar**, junto con el nombre y la fecha de nacimiento.

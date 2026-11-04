@@ -2,8 +2,10 @@
 PLAN: "feat: patient identity for foreigners and patients without documents; sex, notes, estimated birth date; ImportPatient"
 EXECUTOR: jules
 REVIEWER: none
-STATUS: running
+STATUS: review
 SESSION: 10738169610157971371
+PR: https://github.com/veltylabs/patient_directory/pull/13
+REVIEWED_COMMIT: 448d48dc354dca19124b0738826a728b5a48c625
 ---
 
 > Read AGENTS.md at the repo root before any change.

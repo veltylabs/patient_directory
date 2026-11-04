@@ -1,6 +1,8 @@
 package patientdirectory
 
 import (
+	"github.com/veltylabs/patient_directory/kinds"
+	"strings"
 	"webtyp.com/events"
 	"webtyp.com/fmt"
 	"webtyp.com/model"
@@ -55,6 +57,60 @@ type PatientFilter struct {
 	Offset     int64
 }
 
+// checkDocument normalizes and validates p's document by its type. An empty type means RUT (what the form sends
+// today). Only a RUT is validated; other documents are stored as typed, upper-cased and trimmed.
+func (m *Module) checkDocument(p *Patient) error {
+	if p.DocumentType == "" {
+		p.DocumentType = kinds.DocumentRUT
+	}
+	p.Rut = strings.TrimSpace(p.Rut)
+	p.DocumentCountry = strings.ToUpper(strings.TrimSpace(p.DocumentCountry))
+	switch p.DocumentType {
+	case kinds.DocumentRUT:
+		norm, err := m.validateRUT(p.Rut)
+		if err != nil {
+			return &model.FieldError{Field: "rut", Err: err}
+		}
+		p.Rut, p.DocumentCountry = norm, ""
+	case kinds.DocumentPassport, kinds.DocumentForeignID:
+		if p.Rut == "" {
+			return &model.FieldError{Field: "rut", Err: ErrDocumentNumber}
+		}
+		p.Rut = strings.ToUpper(p.Rut)
+	case kinds.DocumentNone:
+		p.Rut, p.DocumentCountry = "", ""
+	case kinds.DocumentUnverified:
+		// stored as typed: the front desk fixes it
+	default:
+		return &model.FieldError{Field: "document_type", Err: ErrDocumentType}
+	}
+	return nil
+}
+
+func (m *Module) findSameDocument(p Patient) error {
+	if p.Rut == "" || p.DocumentType == kinds.DocumentUnverified {
+		return nil
+	}
+	var existing Patient
+	qb := m.db.Query(&existing).
+		Where(Patient_.TenantId).Eq(p.TenantId).
+		Where(Patient_.DocumentType).Eq(p.DocumentType).
+		Where(Patient_.Rut).Eq(p.Rut)
+
+	results, err := ReadAllPatient(qb)
+	if err == nil {
+		for _, r := range results {
+			if r.Id != p.Id && r.DocumentCountry == p.DocumentCountry {
+				return ErrRutAlreadyExists
+			}
+		}
+	}
+	if err != nil && !orm.IsNotFound(err) {
+		return err
+	}
+	return nil
+}
+
 func (m *Module) publish(topic string, payload model.Model) {
 	if m.pub != nil {
 		m.pub.Publish(events.Event{
@@ -71,18 +127,17 @@ func (m *Module) CreatePatient(p Patient) (Patient, error) {
 	if p.TenantId == "" {
 		return Patient{}, &model.FieldError{Field: "tenant_id", Err: ErrTenantRequired}
 	}
-	if p.Rut == "" {
-		return Patient{}, &model.FieldError{Field: "rut", Err: ErrRutRequired}
-	}
 	if p.Name == "" {
 		return Patient{}, &model.FieldError{Field: "name", Err: ErrNameRequired}
 	}
 
-	normRut, err := m.validateRUT(p.Rut)
-	if err != nil {
-		return Patient{}, &model.FieldError{Field: "rut", Err: err}
+	if err := m.checkDocument(&p); err != nil {
+		return Patient{}, err
 	}
-	p.Rut = normRut
+
+	if p.Sex != "" && p.Sex != "m" && p.Sex != "f" {
+		return Patient{}, &model.FieldError{Field: "sex", Err: ErrSex}
+	}
 
 	// Reintento idempotente: buscar por Id sin importar el tenant
 	var existingById Patient
@@ -99,18 +154,9 @@ func (m *Module) CreatePatient(p Patient) (Patient, error) {
 		return Patient{}, errId
 	}
 
-	// Verificar si el RUT ya existe para este tenant
-	existing, err := m.FindByRut(p.TenantId, p.Rut)
-	if err == nil && existing.Id != "" {
-		return Patient{}, ErrRutAlreadyExists
-	} else if err != nil {
-		var isNotFound bool
-		if model.KindOf(err) == model.ErrorNotFound {
-			isNotFound = true
-		}
-		if !isNotFound {
-			return Patient{}, err
-		}
+	// Verificar duplicados de documento
+	if err := m.findSameDocument(p); err != nil {
+		return Patient{}, err
 	}
 
 	p.UpdatedAt = time.NowNano()
@@ -130,9 +176,6 @@ func (m *Module) UpdatePatient(p Patient) (Patient, error) {
 	if p.TenantId == "" {
 		return Patient{}, &model.FieldError{Field: "tenant_id", Err: ErrTenantRequired}
 	}
-	if p.Rut == "" {
-		return Patient{}, &model.FieldError{Field: "rut", Err: ErrRutRequired}
-	}
 	if p.Name == "" {
 		return Patient{}, &model.FieldError{Field: "name", Err: ErrNameRequired}
 	}
@@ -142,27 +185,19 @@ func (m *Module) UpdatePatient(p Patient) (Patient, error) {
 	if err != nil {
 		return Patient{}, err
 	}
+	_ = curr
 
-	normRut, err := m.validateRUT(p.Rut)
-	if err != nil {
-		return Patient{}, &model.FieldError{Field: "rut", Err: err}
+	if err := m.checkDocument(&p); err != nil {
+		return Patient{}, err
 	}
-	p.Rut = normRut
 
-	// Si el RUT cambió, verificar duplicados
-	if normRut != curr.Rut {
-		existing, err := m.FindByRut(p.TenantId, normRut)
-		if err == nil && existing.Id != "" && existing.Id != p.Id {
-			return Patient{}, ErrRutAlreadyExists
-		} else if err != nil {
-			var isNotFound bool
-			if model.KindOf(err) == model.ErrorNotFound {
-			isNotFound = true
-		}
-			if !isNotFound {
-				return Patient{}, err
-			}
-		}
+	if p.Sex != "" && p.Sex != "m" && p.Sex != "f" {
+		return Patient{}, &model.FieldError{Field: "sex", Err: ErrSex}
+	}
+
+	// Verificar duplicados de documento
+	if err := m.findSameDocument(p); err != nil {
+		return Patient{}, err
 	}
 
 	p.UpdatedAt = time.NowNano()
@@ -204,15 +239,20 @@ func (m *Module) FindByRut(tenantID, rut string) (Patient, error) {
 	var p Patient
 	qb := m.db.Query(&p).
 		Where(Patient_.TenantId).Eq(tenantID).
+		Where(Patient_.DocumentType).Eq(kinds.DocumentRUT).
 		Where(Patient_.Rut).Eq(normRut)
-	_, err = ReadOnePatient(qb, &p)
-	if orm.IsNotFound(err) {
-		return Patient{}, ErrNotFound
+	results, err := ReadAllPatient(qb)
+	if err == nil {
+		for _, r := range results {
+			if r.DocumentCountry == "" {
+				return *r, nil
+			}
+		}
 	}
-	if err != nil {
+	if err != nil && !orm.IsNotFound(err) {
 		return Patient{}, err
 	}
-	return p, nil
+	return Patient{}, ErrNotFound
 }
 
 func (m *Module) ListPatients(tenantID string, filter PatientFilter) ([]Patient, error) {

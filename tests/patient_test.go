@@ -353,8 +353,6 @@ func TestDeactivatePatient(t *testing.T) {
 	}
 }
 
-
-
 func TestItemsDeclaredOnFields(t *testing.T) {
 	rec := patientdirectory.Patient{
 		Id:   "123",

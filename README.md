@@ -80,3 +80,26 @@ module, err := patientdirectory.New(db, deps)
 - `ops.go` — Controladores de operaciones del router y su registro.
 - `view.go` — Motor de presentación de vista (`NewView`).
 - `migrate/migrate.go` — Sincronización del esquema de base de datos.
+
+## Documento de identidad
+
+Un paciente se identifica por su **id interno**; el documento es un dato que puede faltar. `document_type` puede ser
+`rut` (por defecto, se valida el dígito verificador), `passport`, `foreign_id` (cédula de otro país), `none` (sin
+documento a mano) o `unverified` (ingresado pero inválido: recepción lo corrige). El número va en la columna `rut`
+(mantiene su nombre: otros módulos usan `FindByRut`) y el país emisor en `document_country` (código de 2 letras: `VE`,
+`PE`, `HT`). Detalle y razones: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md#documento-de-identidad).
+
+## Importar pacientes históricos
+
+`ImportPatient` guarda un paciente de un sistema anterior con el id que tenía allá; si ese id ya existe, lo actualiza.
+Valida igual que `CreatePatient` y no publica eventos.
+
+```go
+p, err := dir.ImportPatient(patientdirectory.Patient{
+	Id:           "1640011384447734400",
+	TenantId:     tenantID,
+	DocumentType: kinds.DocumentRUT,
+	Rut:          "12345678-5",
+	Name:         "Ana",
+})
+```

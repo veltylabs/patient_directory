@@ -2,10 +2,27 @@
   "languages": ["es", "zh", "hi", "ar", "pt", "fr", "de", "ru"],
   "keys": {
     "Address": ["Dirección", "地址", "पता", "عنوان", "Endereço", "Adresse", "Adresse", "Адрес"],
+    "Anything the front desk must know about this patient, e.g. the old paper file number.": ["Cualquier cosa que recepción deba saber sobre este paciente, ej. el número de ficha antigua.", "", "", "", "", "", "", ""],
     "Birthdate": ["Fecha de nacimiento", "出生日期", "जन्म तिथि", "تاريخ الميلاد", "Data de nascimento", "Date de naissance", "Geburtsdatum", "Дата рождения"],
+    "Document number": ["Número de documento", "", "", "", "", "", "", ""],
+    "Document type": ["Tipo de documento", "", "", "", "", "", "", ""],
+    "Estimated birth date": ["Fecha de nacimiento aproximada", "", "", "", "", "", "", ""],
+    "Foreign id card": ["Cédula extranjera", "", "", "", "", "", "", ""],
+    "Issuing country": ["País emisor", "", "", "", "", "", "", ""],
+    "Mark it when the date comes from the age the patient said, not from a document.": ["Márquelo cuando la fecha provenga de la edad que dijo el paciente, no de un documento.", "", "", "", "", "", "", ""],
+    "No document": ["Sin documento", "", "", "", "", "", "", ""],
+    "Notes": ["Notas", "", "", "", "", "", "", ""],
+    "Passport": ["Pasaporte", "", "", "", "", "", "", ""],
     "Patient directory: personal data, contact information and identification.": ["Directorio de pacientes: datos personales, información de contacto e identificación.", "患者名录：个人数据、联系方式和身份识别。", "रोगी निर्देशिका: व्यक्तिगत डेटा, संपर्क जानकारी और पहचान।", "دليل المرضى: البيانات الشخصية ومعلومات الاتصال والهوية.", "Diretório de pacientes: dados pessoais, informações de contato e identificação.", "Répertoire des patients: données personnelles, coordonnées et identification.", "Patientenverzeichnis: personenbezogene Daten, Kontaktinformationen und Identifikation.", "Справочник пациентов: личные данные, контактная информация и идентификация."],
     "Patients": ["Pacientes", "患者", "रोगी", "المرضى", "Pacientes", "Patients", "Patienten", "Пациенты"],
     "Phone": ["Teléfono", "电话", "फ़ोन", "هاتف", "Telefone", "Téléphone", "Telefon", "Телефон"],
-    "Rut": ["RUT", "", "", "", "", "", "", ""]
+    "RUT": ["RUT", "", "", "", "", "", "", ""],
+    "Rut": ["RUT", "", "", "", "", "", "", ""],
+    "Sex": ["Sexo", "", "", "", "", "", "", ""],
+    "To verify": ["Por verificar", "", "", "", "", "", "", ""],
+    "Two-letter country code of the passport or id card, e.g. VE, PE, HT. Empty for a Chilean RUT.": ["Código de país de dos letras del pasaporte o cédula, ej. VE, PE, HT. Vacío para un RUT chileno.", "", "", "", "", "", "", ""],
+    "active only": ["sólo activos", "", "", "", "", "", "", ""],
+    "tenant id": ["id del tenant", "", "", "", "", "", "", ""],
+    "updated at": ["actualizado en", "", "", "", "", "", "", ""]
   }
 }
