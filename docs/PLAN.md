@@ -2,6 +2,8 @@
 PLAN: "feat: patient sex, notes and document type; ImportPatient for history"
 EXECUTOR: jules
 REVIEWER: none
+STATUS: running
+SESSION: 2065367097368748488
 ---
 
 > Read AGENTS.md at the repo root before any change.
