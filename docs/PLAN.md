@@ -2,6 +2,8 @@
 PLAN: "feat: patient identity for foreigners and patients without documents; sex, notes, estimated birth date; ImportPatient"
 EXECUTOR: jules
 REVIEWER: none
+STATUS: running
+SESSION: 10738169610157971371
 ---
 
 > Read AGENTS.md at the repo root before any change.
