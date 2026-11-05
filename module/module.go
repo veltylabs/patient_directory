@@ -9,3 +9,4 @@ import "webtyp.com/appkit"
 //
 // Ejemplo: Modules: []appkit.Module{patientdirectory.Module}
 var Module = appkit.Module{Name: "patient_directory", Server: server, Browser: browser}
+

@@ -46,3 +46,4 @@ func (m *Module) CreatePatient(tenantID, id, documentNumber, name, phone, email 
 	}
 	return p.Id, nil
 }
+

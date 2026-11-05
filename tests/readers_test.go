@@ -151,3 +151,4 @@ func TestCreatePatientDuplicate(t *testing.T) {
 		t.Errorf("expected ErrRutAlreadyExists, got %v", err)
 	}
 }
+

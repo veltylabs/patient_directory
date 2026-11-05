@@ -8,11 +8,10 @@ import (
 	"webtyp.com/model"
 
 	patientdirectory "github.com/veltylabs/patient_directory"
-	"github.com/veltylabs/patient_directory/migrate"
 )
 
-// server es lo que el módulo aporta al servidor: sus tablas y cómo se construye.
-var server = appkit.ModuleServer{Migrate: migrate.Migrate, Build: build}
+// server es lo que el módulo aporta al servidor: cómo se construye.
+var server = appkit.ModuleServer{Build: build}
 
 // En el servidor el módulo no aporta pantallas.
 var browser appkit.ModuleBrowser
