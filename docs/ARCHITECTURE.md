@@ -3,7 +3,7 @@
 ## Límite del Dominio
 
 `patient_directory` es propietario de la **identidad** y **datos de contacto** del paciente:
-- Identidad: ID interno, identificador nacional (RUT), nombre completo, fecha de nacimiento.
+- Identidad: ID interno, identificador nacional (RUT), tipo de documento, país emisor, nombre completo, sexo, fecha de nacimiento.
 - Contacto: número de teléfono, correo electrónico, dirección física.
 - Estado: indicador de activo (`is_active`), marca de tiempo de actualización (`updated_at`).
 
@@ -12,63 +12,54 @@ Explícitamente **no** es propietario de:
 - Citas médicas ni estado de agenda (propiedad de `appointment_booking`).
 - Cuentas de usuarios de personal o profesionales de la salud (propiedad de `staff_manager`).
 
-## Decisiones Arquitectónicas Principales
+## Regla de los Seis Verbos e Integración entre Módulos
 
-1. **Identidad por RUT y Alcance por Tenant:**
-   - Las clínicas chilenas identifican a los pacientes mediante el RUT nacional.
-   - La unicidad está delimitada por tenant: el mismo RUT puede existir en diferentes tenants (clínicas) de forma independiente.
+Siguiendo la regla de diseño del ecosistema (**module-layout** «Six verbs, one name per job»), este módulo no exporta tipos complejos o estructuras propias a otros módulos. 
 
-2. **Control de Unicidad en Capa de Aplicación:**
-   - Una restricción de unicidad de una sola columna en `rut` fallaría en bases de datos multitenant.
-   - `patient_directory` verifica la existencia del RUT en `CreatePatient` y `UpdatePatient` retornando `ErrRutAlreadyExists`. `PatientModel` no lleva la marca `Unique: true`.
+Los métodos exportados para interoperabilidad retornan y reciben únicamente tipos planos:
+- `GetPatient(tenantID, id string) (name, documentNumber, phone, email string, found bool, err error)`
+- `FindPatient(tenantID, documentNumber string) (id, name, phone, email string, found bool, err error)`
+- `CreatePatient(tenantID, id, documentNumber, name, phone, email string) (patientID string, err error)`
+- `ImportPatient(p Patient) (Patient, error)` (reservado para migraciones y carga inicial)
 
-3. **Operación LinkPatient para reservas de invitados:**
-   - Devuelve solo el ID del paciente, sin modificar un paciente existente ni devolver su información de contacto sensible.
-   - Permite enlazar turnos con pacientes por su RUT cuando lo envía un usuario público/invitado de manera segura.
+Las formas que manejan la estructura interna `Patient` (`getPatient`, `createPatient`, `updatePatient`, `listPatients`, `deactivatePatient`, `findByDocument`) son no exportadas y de uso exclusivo interno y para las operaciones del router (`ops.go`).
 
-4. **Desactivación en lugar de Eliminación:**
-   - Los pacientes nunca se eliminan físicamente. `DeactivatePatient` establece `is_active = false`.
-   - Los registros históricos y reservas que referencian a un ID de paciente siempre deben poder resolverse.
+Cualquier módulo consumidor (`appointment_booking`, `clinical_encounter`, etc.) declara en su propio `interfaces.go` únicamente las firmas de los métodos planos que necesita, satisfaciéndose estructuralmente sin adaptadores y con cero dependencias cruzadas en `go.mod`.
 
-5. **Validación de RUT Inyectada:**
-   - La función `Deps.ValidateRUT` se inyecta en `patientdirectory.New`.
-   - El módulo no depende de ninguna librería específica de RUT ni implementa algoritmos de dígito verificador.
+## Integración con Appkit
 
-6. **Sin Cadenas de UI / Sin Traducciones de Idioma:**
-   - Los controladores y modelos retornan constantes de dominio y errores estándar.
-   - La traducción de etiquetas para los usuarios finales es responsabilidad de las interfaces web/móviles consumidoras.
-
-## Ejemplo de Ensamblado en Raíz de Composición (Composition Root)
-
-Conexión de `patient_directory` con `appointment_booking`:
+El submódulo `module/` exporta el valor listo para `App.Modules`:
 
 ```go
-package main
+package config
 
 import (
-	"github.com/veltylabs/patient_directory"
-	// "github.com/veltylabs/appointment_booking"
+	patientmodule "github.com/veltylabs/patient_directory/module"
+	"webtyp.com/appkit"
 )
 
-func main() {
-	// 1. Inicializar módulo patient_directory
-	patientMod, err := patientdirectory.New(db, patientdirectory.Deps{
-		ValidateRUT: myRutValidator,
-		Publisher: eventPub,
-	})
-	if err != nil {
-		log.Fatalf("error al inicializar patient_directory: %v", err)
-	}
-
-	// 2. Conectar directamente con appointment_booking sin adaptador (satisface estructuralmente ClientExists)
-	/*
-	bookingMod, err := appointmentbooking.New(db, appointmentbooking.Deps{
-		Directory: patientMod, // satisface la interfaz DirectoryReader
-	})
-	*/
-	_ = patientMod
+var App = appkit.App{
+	Modules: []appkit.Module{
+		patientmodule.Module,
+	},
 }
 ```
+
+## Decisiones Arquitectónicas Principales
+
+1. **Identidad y Alcance por Tenant:**
+   - La unicidad de documento está delimitada por tenant: el mismo documento puede existir en diferentes clínicas de forma independiente.
+
+2. **Control de Unicidad en Capa de Aplicación:**
+   - `patient_directory` verifica la existencia del documento en `createPatient` y `updatePatient` retornando `ErrRutAlreadyExists`. `PatientModel` no lleva la marca `Unique: true` a nivel de columna para permitir multitenancy limpio.
+
+3. **Desactivación en lugar de Eliminación:**
+   - Los pacientes nunca se eliminan físicamente. `deactivatePatient` establece `is_active = false`.
+   - Los registros históricos y reservas que referencian a un ID de paciente siempre deben poder resolverse.
+
+4. **Validación de RUT Inyectada:**
+   - La función `Deps.ValidateRUT` se inyecta en `patientdirectory.New`.
+   - El módulo no depende de ninguna librería específica de RUT ni implementa algoritmos de dígito verificador propios.
 
 ## Documento de identidad
 

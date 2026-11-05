@@ -13,7 +13,6 @@ const (
 	OpFindPatientByRut  = "find_patient_by_rut"
 	OpUpsertPatient     = "upsert_patient"
 	OpDeactivatePatient = "deactivate_patient"
-	OpLinkPatient       = "link_patient"
 )
 
 // ModelName is this module's identity: mcp.HarvestOps qualifies every op
@@ -35,17 +34,17 @@ func (m *Module) MountOperations(reg router.OperationRegistry) {
 		if p.Id == "" {
 			return ErrIdRequired
 		}
-		_, getErr := m.GetPatient(p.TenantId, p.Id)
+		_, getErr := m.getPatient(p.TenantId, p.Id)
 		var out Patient
 		var err error
 		if getErr != nil {
 			if model.KindOf(getErr) == model.ErrorNotFound {
-				out, err = m.CreatePatient(*p)
+				out, err = m.createPatient(*p)
 			} else {
 				return getErr
 			}
 		} else {
-			out, err = m.UpdatePatient(*p)
+			out, err = m.updatePatient(*p)
 		}
 		if err == nil {
 			*p = out
@@ -53,7 +52,6 @@ func (m *Module) MountOperations(reg router.OperationRegistry) {
 		return err
 	}).Requires(model.ResourceOf(&PatientModel), model.Create|model.Update)
 	reg.Operation(OpDeactivatePatient, m.opDeactivatePatient).Requires(model.ResourceOf(&PatientModel), model.Update).Accepts(&DeactivatePatientArgs{})
-	reg.Operation(OpLinkPatient, m.opLinkPatient).Requires(ResourcePatientLink, model.Create).Accepts(&LinkPatientArgs{})
 }
 
 var _ router.OperationModule = (*Module)(nil)
@@ -68,7 +66,7 @@ func (m *Module) opListPatients(ctx router.Context) {
 	if tenantID == "" {
 		tenantID = m.tenantID
 	}
-	patients, err := m.ListPatients(tenantID, PatientFilter{
+	patients, err := m.listPatients(tenantID, PatientFilter{
 		ActiveOnly: args.ActiveOnly,
 		Limit:      args.Limit,
 		Offset:     args.Offset,
@@ -90,7 +88,7 @@ func (m *Module) opGetPatient(ctx router.Context) {
 		rpc.WriteError(ctx, ErrCannotRead)
 		return
 	}
-	p, err := m.GetPatient(args.TenantId, args.Id)
+	p, err := m.getPatient(args.TenantId, args.Id)
 	if err != nil {
 		rpc.WriteError(ctx, err)
 		return
@@ -104,7 +102,7 @@ func (m *Module) opFindPatientByRut(ctx router.Context) {
 		rpc.WriteError(ctx, ErrCannotRead)
 		return
 	}
-	p, err := m.FindByRut(args.TenantId, args.Rut)
+	p, err := m.findByDocument(args.TenantId, args.Rut)
 	if err != nil {
 		rpc.WriteError(ctx, err)
 		return
@@ -118,28 +116,10 @@ func (m *Module) opDeactivatePatient(ctx router.Context) {
 		rpc.WriteError(ctx, ErrCannotRead)
 		return
 	}
-	err := m.DeactivatePatient(args.TenantId, args.Id)
+	err := m.deactivatePatient(args.TenantId, args.Id)
 	if err != nil {
 		rpc.WriteError(ctx, err)
 		return
 	}
 	ctx.WriteStatus(200)
-}
-
-func (m *Module) opLinkPatient(ctx router.Context) {
-	var args LinkPatientArgs
-	if err := ctx.Decode(&args); err != nil {
-		rpc.WriteError(ctx, ErrCannotRead)
-		return
-	}
-	if err := args.Validate(byte(model.Create)); err != nil {
-		rpc.WriteError(ctx, err)
-		return
-	}
-	id, err := m.LinkPatient(args)
-	if err != nil {
-		rpc.WriteError(ctx, err)
-		return
-	}
-	_ = ctx.Encode(&LinkPatientResult{Id: id})
 }

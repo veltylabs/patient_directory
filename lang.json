@@ -11,7 +11,6 @@
     "Issuing country": ["País emisor", "", "", "", "", "", "", ""],
     "Mark it when the date comes from the age the patient said, not from a document.": ["Márquelo cuando la fecha provenga de la edad que dijo el paciente, no de un documento.", "", "", "", "", "", "", ""],
     "No document": ["Sin documento", "", "", "", "", "", "", ""],
-    "Notes": ["Notas", "", "", "", "", "", "", ""],
     "Passport": ["Pasaporte", "", "", "", "", "", "", ""],
     "Patient directory: personal data, contact information and identification.": ["Directorio de pacientes: datos personales, información de contacto e identificación.", "患者名录：个人数据、联系方式和身份识别。", "रोगी निर्देशिका: व्यक्तिगत डेटा, संपर्क जानकारी और पहचान।", "دليل المرضى: البيانات الشخصية ومعلومات الاتصال والهوية.", "Diretório de pacientes: dados pessoais, informações de contato e identificação.", "Répertoire des patients: données personnelles, coordonnées et identification.", "Patientenverzeichnis: personenbezogene Daten, Kontaktinformationen und Identifikation.", "Справочник пациентов: личные данные, контактная информация и идентификация."],
     "Patients": ["Pacientes", "患者", "रोगी", "المرضى", "Pacientes", "Patients", "Patienten", "Пациенты"],

@@ -12,7 +12,7 @@ func TestCreatePatientDefaultsToRUT(t *testing.T) {
 	m, _, _ := setupModule()
 
 	// bad check digit
-	_, err := m.CreatePatient(patientdirectory.Patient{
+	_, err := m.ImportPatient(patientdirectory.Patient{
 		Id:       "1",
 		TenantId: "t",
 		Name:     "N",
@@ -27,7 +27,7 @@ func TestCreatePatientDefaultsToRUT(t *testing.T) {
 	}
 
 	// good RUT
-	p, err := m.CreatePatient(patientdirectory.Patient{
+	p, err := m.ImportPatient(patientdirectory.Patient{
 		Id:       "2",
 		TenantId: "t",
 		Name:     "N",
@@ -47,7 +47,7 @@ func TestCreatePatientDefaultsToRUT(t *testing.T) {
 func TestPassportNeedsNumber(t *testing.T) {
 	m, _, _ := setupModule()
 
-	_, err := m.CreatePatient(patientdirectory.Patient{
+	_, err := m.ImportPatient(patientdirectory.Patient{
 		Id:           "1",
 		TenantId:     "t",
 		Name:         "N",
@@ -66,7 +66,7 @@ func TestPassportNeedsNumber(t *testing.T) {
 func TestPassportStoredAsTyped(t *testing.T) {
 	m, _, _ := setupModule()
 
-	p, err := m.CreatePatient(patientdirectory.Patient{
+	p, err := m.ImportPatient(patientdirectory.Patient{
 		Id:              "1",
 		TenantId:        "t",
 		Name:            "N",
@@ -88,7 +88,7 @@ func TestPassportStoredAsTyped(t *testing.T) {
 func TestNoDocument(t *testing.T) {
 	m, _, _ := setupModule()
 
-	p, err := m.CreatePatient(patientdirectory.Patient{
+	p, err := m.ImportPatient(patientdirectory.Patient{
 		Id:           "1",
 		TenantId:     "t",
 		Name:         "N",
@@ -114,13 +114,13 @@ func TestSameDocumentTwice(t *testing.T) {
 		Rut:             "123",
 		DocumentCountry: "VE",
 	}
-	_, err := m.CreatePatient(p)
+	_, err := m.ImportPatient(p)
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	p.Id = "2"
-	_, err = m.CreatePatient(p)
+	_, err = m.ImportPatient(p)
 	if err != patientdirectory.ErrRutAlreadyExists {
 		t.Fatalf("expected ErrRutAlreadyExists, got %v", err)
 	}
@@ -129,7 +129,7 @@ func TestSameDocumentTwice(t *testing.T) {
 func TestSamePassportOtherCountry(t *testing.T) {
 	m, _, _ := setupModule()
 
-	_, err := m.CreatePatient(patientdirectory.Patient{
+	_, err := m.ImportPatient(patientdirectory.Patient{
 		Id:              "1",
 		TenantId:        "t",
 		Name:            "N",
@@ -141,7 +141,7 @@ func TestSamePassportOtherCountry(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	_, err = m.CreatePatient(patientdirectory.Patient{
+	_, err = m.ImportPatient(patientdirectory.Patient{
 		Id:              "2",
 		TenantId:        "t",
 		Name:            "N",
@@ -157,7 +157,7 @@ func TestSamePassportOtherCountry(t *testing.T) {
 func TestTwoWithoutDocument(t *testing.T) {
 	m, _, _ := setupModule()
 
-	_, err := m.CreatePatient(patientdirectory.Patient{
+	_, err := m.ImportPatient(patientdirectory.Patient{
 		Id:           "1",
 		TenantId:     "t",
 		Name:         "N",
@@ -167,7 +167,7 @@ func TestTwoWithoutDocument(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	_, err = m.CreatePatient(patientdirectory.Patient{
+	_, err = m.ImportPatient(patientdirectory.Patient{
 		Id:           "2",
 		TenantId:     "t",
 		Name:         "N",
@@ -181,7 +181,7 @@ func TestTwoWithoutDocument(t *testing.T) {
 func TestSexValues(t *testing.T) {
 	m, _, _ := setupModule()
 
-	_, err := m.CreatePatient(patientdirectory.Patient{
+	_, err := m.ImportPatient(patientdirectory.Patient{
 		Id:       "1",
 		TenantId: "t",
 		Name:     "N",
@@ -200,7 +200,7 @@ func TestSexValues(t *testing.T) {
 func TestInactivePatientSaves(t *testing.T) {
 	m, _, _ := setupModule()
 
-	p, err := m.CreatePatient(patientdirectory.Patient{
+	p, err := m.ImportPatient(patientdirectory.Patient{
 		Id:       "1",
 		TenantId: "t",
 		Name:     "N",

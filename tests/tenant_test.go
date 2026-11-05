@@ -12,7 +12,7 @@ func TestTenantIsolation(t *testing.T) {
 		t.Fatalf("setup falló: %v", err)
 	}
 
-	p1, _ := m.CreatePatient(patientdirectory.Patient{
+	p1, _ := m.ImportPatient(patientdirectory.Patient{
 		Id:       "id-1",
 		TenantId: "tenant-A",
 		Rut:      "11111111-1",
@@ -20,7 +20,7 @@ func TestTenantIsolation(t *testing.T) {
 		IsActive: true,
 	})
 
-	p2, _ := m.CreatePatient(patientdirectory.Patient{
+	p2, _ := m.ImportPatient(patientdirectory.Patient{
 		Id:       "id-2",
 		TenantId: "tenant-B",
 		Rut:      "22222222-2",
@@ -29,31 +29,24 @@ func TestTenantIsolation(t *testing.T) {
 	})
 
 	// Aislamiento entre tenants para GetPatient
-	_, err = m.GetPatient("tenant-B", p1.Id)
-	if err == nil || err != patientdirectory.ErrNotFound {
-		t.Errorf("se esperaba ErrNotFound al consultar un paciente de tenant-A en tenant-B, se obtuvo %v", err)
+	_, _, _, _, found, err := m.GetPatient("tenant-B", p1.Id)
+	if err != nil || found {
+		t.Errorf("se esperaba found=false al consultar un paciente de tenant-A en tenant-B, se obtuvo found=%v err=%v", found, err)
 	}
 
-	// Aislamiento entre tenants para FindByRut
-	_, err = m.FindByRut("tenant-B", p1.Rut)
-	if err == nil || err != patientdirectory.ErrNotFound {
-		t.Errorf("se esperaba ErrNotFound al consultar un RUT de tenant-A en tenant-B, se obtuvo %v", err)
+	// Aislamiento entre tenants para FindPatient
+	_, _, _, _, found, err = m.FindPatient("tenant-B", p1.Rut)
+	if err != nil || found {
+		t.Errorf("se esperaba found=false al consultar un RUT de tenant-A en tenant-B, se obtuvo found=%v err=%v", found, err)
 	}
 
-	// Filtrado por tenant en ListPatients
-	listA, err := m.ListPatients("tenant-A", patientdirectory.PatientFilter{})
-	if err != nil {
-		t.Fatalf("ListPatients tenant-A falló: %v", err)
+	// Cada tenant encuentra a su propio paciente
+	_, _, _, _, found, err = m.GetPatient("tenant-A", p1.Id)
+	if err != nil || !found {
+		t.Errorf("tenant-A no encontró su paciente p1")
 	}
-	if len(listA) != 1 || listA[0].Id != p1.Id {
-		t.Errorf("se esperaba que listA contuviera únicamente a p1, se obtuvo %v", listA)
-	}
-
-	listB, err := m.ListPatients("tenant-B", patientdirectory.PatientFilter{})
-	if err != nil {
-		t.Fatalf("ListPatients tenant-B falló: %v", err)
-	}
-	if len(listB) != 1 || listB[0].Id != p2.Id {
-		t.Errorf("se esperaba que listB contuviera únicamente a p2, se obtuvo %v", listB)
+	_, _, _, _, found, err = m.GetPatient("tenant-B", p2.Id)
+	if err != nil || !found {
+		t.Errorf("tenant-B no encontró su paciente p2")
 	}
 }

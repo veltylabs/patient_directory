@@ -53,7 +53,7 @@ func TestOpListPatients_FallsBackToModuleTenant(t *testing.T) {
 		t.Fatalf("New: %v", err)
 	}
 
-	seeded, err := m.CreatePatient(patientdirectory.Patient{
+	seeded, err := m.ImportPatient(patientdirectory.Patient{
 		Id:       "seeded-id",
 		TenantId: moduleTenant,
 		Rut:      "12345678-5",

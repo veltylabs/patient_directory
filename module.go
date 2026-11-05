@@ -120,7 +120,7 @@ func (m *Module) publish(topic string, payload model.Model) {
 	}
 }
 
-func (m *Module) CreatePatient(p Patient) (Patient, error) {
+func (m *Module) createPatient(p Patient) (Patient, error) {
 	if p.Id == "" {
 		return Patient{}, &model.FieldError{Field: "id", Err: ErrIdRequired}
 	}
@@ -169,7 +169,7 @@ func (m *Module) CreatePatient(p Patient) (Patient, error) {
 	return p, nil
 }
 
-func (m *Module) UpdatePatient(p Patient) (Patient, error) {
+func (m *Module) updatePatient(p Patient) (Patient, error) {
 	if p.Id == "" {
 		return Patient{}, ErrNotFound
 	}
@@ -181,7 +181,7 @@ func (m *Module) UpdatePatient(p Patient) (Patient, error) {
 	}
 
 	// Verificar que el paciente existente pertenezca al tenant
-	curr, err := m.GetPatient(p.TenantId, p.Id)
+	curr, err := m.getPatient(p.TenantId, p.Id)
 	if err != nil {
 		return Patient{}, err
 	}
@@ -210,7 +210,7 @@ func (m *Module) UpdatePatient(p Patient) (Patient, error) {
 	return p, nil
 }
 
-func (m *Module) GetPatient(tenantID, id string) (Patient, error) {
+func (m *Module) getPatient(tenantID, id string) (Patient, error) {
 	if tenantID == "" || id == "" {
 		return Patient{}, ErrNotFound
 	}
@@ -228,7 +228,7 @@ func (m *Module) GetPatient(tenantID, id string) (Patient, error) {
 	return p, nil
 }
 
-func (m *Module) FindByRut(tenantID, rut string) (Patient, error) {
+func (m *Module) findByDocument(tenantID, rut string) (Patient, error) {
 	if tenantID == "" || rut == "" {
 		return Patient{}, ErrNotFound
 	}
@@ -255,7 +255,7 @@ func (m *Module) FindByRut(tenantID, rut string) (Patient, error) {
 	return Patient{}, ErrNotFound
 }
 
-func (m *Module) ListPatients(tenantID string, filter PatientFilter) ([]Patient, error) {
+func (m *Module) listPatients(tenantID string, filter PatientFilter) ([]Patient, error) {
 	if tenantID == "" {
 		return []Patient{}, nil
 	}
@@ -282,8 +282,8 @@ func (m *Module) ListPatients(tenantID string, filter PatientFilter) ([]Patient,
 	return out, nil
 }
 
-func (m *Module) DeactivatePatient(tenantID, id string) error {
-	p, err := m.GetPatient(tenantID, id)
+func (m *Module) deactivatePatient(tenantID, id string) error {
+	p, err := m.getPatient(tenantID, id)
 	if err != nil {
 		return err
 	}
@@ -295,80 +295,4 @@ func (m *Module) DeactivatePatient(tenantID, id string) error {
 	}
 	m.publish(TopicPatientDeactivated, &p)
 	return nil
-}
-
-// LinkPatient devuelve el id del paciente de ese RUT. Si no existe, lo crea con
-// los datos recibidos y el id de cmd. Si existe, devuelve su id guardado y NO
-// modifica ni devuelve ningún otro dato: lo llama un invitado anónimo.
-func (m *Module) LinkPatient(a LinkPatientArgs) (string, error) {
-	if a.TenantId == "" {
-		return "", &model.FieldError{Field: "tenant_id", Err: ErrTenantRequired}
-	}
-	if a.Id == "" {
-		return "", &model.FieldError{Field: "id", Err: ErrIdRequired}
-	}
-	if a.Rut == "" {
-		return "", &model.FieldError{Field: "rut", Err: ErrRutRequired}
-	}
-	if a.Name == "" {
-		return "", &model.FieldError{Field: "name", Err: ErrNameRequired}
-	}
-
-	existing, err := m.FindByRut(a.TenantId, a.Rut)
-	if err == nil {
-		return existing.Id, nil
-	}
-	if model.KindOf(err) != model.ErrorNotFound {
-		return "", err
-	}
-
-	p, err := m.CreatePatient(Patient{
-		Id:       a.Id,
-		TenantId: a.TenantId,
-		Rut:      a.Rut,
-		Name:     a.Name,
-		Phone:    a.Phone,
-		Email:    a.Email,
-		IsActive: true,
-	})
-
-	if err != nil {
-		if err == ErrRutAlreadyExists {
-			again, findErr := m.FindByRut(a.TenantId, a.Rut)
-			if findErr == nil {
-				return again.Id, nil
-			}
-			return "", findErr
-		}
-		return "", err
-	}
-
-	return p.Id, nil
-}
-
-// ClientExists informa si un paciente con este ID pertenece a este tenant.
-// Satisface el puerto estrecho DirectoryReader que un módulo de agendamiento
-// declara de su lado (ClientExists(tenantId, clientId) (bool, error)) —
-// estructuralmente, sin adaptador y sin importar en ninguna dirección.
-//
-// Un registro faltante es (false, nil), NO un error: "este ID no es nuestro" es
-// la respuesta que el solicitante pidió. Solo una falla real de almacenamiento
-// retorna un error no nulo, para que un llamador nunca confunda una base de
-// datos caída con una respuesta negativa limpia.
-//
-// Un paciente INACTIVO aún existe. La desactivación remueve a alguien de la
-// lista de trabajo; no desaparece a la persona, y una reserva que lo
-// referencia debe continuar resolviendo.
-func (m *Module) ClientExists(tenantID, clientID string) (bool, error) {
-	if tenantID == "" || clientID == "" {
-		return false, nil
-	}
-	_, err := m.GetPatient(tenantID, clientID)
-	if model.KindOf(err) == model.ErrorNotFound {
-		return false, nil
-	}
-	if err != nil {
-		return false, err
-	}
-	return true, nil
 }

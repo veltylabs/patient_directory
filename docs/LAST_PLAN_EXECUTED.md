@@ -1,181 +1,179 @@
 ---
-PLAN: "feat: migrate ui to view.Screen and drop layout dependency"
-TAG: v0.1.62
+PLAN: "feat!: six-verb plain API (GetPatient, FindPatient, CreatePatient); struct methods unexported; LinkPatient and ClientExists removed; module/"
 EXECUTOR: jules
 REVIEWER: none
 STATUS: running
-SESSION: 197789056488966647
+SESSION: 434415614690636480
 ---
 
 > Read AGENTS.md at the repo root before any change.
+> **Finish by yourself:** when the delivery check passes, commit, push and open the pull request. Never ask whether to
+> proceed or finalize — nobody answers, and a session that waits ends without your work.
 
-# Migración de UI a view.Screen y eliminación de dependencia webtyp/layout
-
-## Ecosystem search
-
-- `webtyp.com/view` (`v0.6.45`): define el contrato de pantalla declarativa `view.Screen`, `view.Presenter`, `view.WithDescription`, `view.WithTitle`, y el validador `Screen.Validate()`.
-- `veltylabs/patient_directory`: actualmente exporta `ui.Browser(...) (platformd.UIModule, error)` importando `webtyp.com/layout/platformd`, `crudview`, forzando a este módulo a acoplarse con librerías de chasis visual y renderizado.
-
-## Design gate
-
-1. **Prior art**: `webtyp/view` v0.6.44 introdujo `view.Screen` como el contrato único para que los módulos declaren qué muestran como datos puros, sin importar renderizadores ni chasis.
-2. **Novice-name test**: `ui.Screens(caller router.Caller) []view.Screen` devuelve las pantallas que ofrece este módulo al menú de la aplicación.
-3. **Complexity ledger**: Elimina `webtyp.com/layout` (y sus dependencias indirectas) de `go.mod`.
-4. **Where it belongs**: `ui.Screens` vive en `github.com/veltylabs/patient_directory/ui`. `NewView` vive en la raíz del paquete `patientdirectory`.
-5. **What it deletes**: Borra `ui.Browser` y el require de `webtyp.com/layout` en `go.mod`.
+# Plan — patient_directory exports three plain methods any module can declare
 
 ## Tools
 
 ```bash
 go install webtyp.com/devflow/cmd/gotest@latest
+go install webtyp.com/ormc/cmd/ormc@latest
 go install webtyp.com/lang/cmd/langc@latest
-go get webtyp.com/view@v0.6.45
-go get webtyp.com/router@v0.4.8
+go get webtyp.com/time@v0.6.4 webtyp.com/appkit@v0.2.8
 ```
 
-## APIs used
+## Why
 
-| Symbol | Signature | Tag | File |
-|---|---|---|---|
-| `view.Screen` | `type Screen struct { ID string; Label lang.Text; Icon string; Permission model.Resource; Presenter Presenter; Lookups []Lookup; Help lang.Text; Children []Screen }` | `webtyp.com/view v0.6.45` | `screen.go:35` |
-| `view.Presenter` | `type Presenter interface { ... }` | `webtyp.com/view v0.6.45` | `presenter.go:12` |
-| `view.WithTitle` | `func WithTitle(title string) Option` | `webtyp.com/view v0.6.45` | `view.go:124` |
-| `view.WithDescription` | `func WithDescription(d lang.Text) Option` | `webtyp.com/view v0.6.45` | `view.go:138` |
-| `view.New` | `func New(l Lister, record model.Model, opts ...Option) Presenter` | `webtyp.com/view v0.6.45` | `view.go:147` |
-| `router.Caller` | `type Caller interface { Call(op string, args Encodable, out Decodable, done func(error)); Dispatch(op string, args Encodable) }` | `webtyp.com/router v0.4.8` | `router.go` |
+A module cannot hand its `Patient` type to another module, so each consumer asked for its own plain variant with an
+invented name: today this module has 6 names to read and create a patient (`ClientExists`, `FindByRut`,
+`GetPatient`, `CreatePatient`, `LinkPatient` + the ones `appointment_booking`/`clinical_encounter` ask for), and an
+app with those modules does not start. New ecosystem rule (module-layout «Six verbs, one name per job"): every
+exported method is `<Verb><Entity>` with `Get`, `Find`, `List`, `Create`, `Update`, `Delete` (+ `Import<Entity>`),
+plain values in and out; forms with the module's own type are unexported and used only by its ops.
 
-## Deletions
-
-- `ui.Browser` en `ui/browser.go`. Criterio: `grep -rn "func.*Browser(" ui/` -> vacío.
-- Todo import de `webtyp.com/layout` en el repositorio. Criterio: `grep -rn "webtyp.com/layout" .` -> vacío.
-
----
-
-## Stage 1: Soportar view.Option en constructores de Presenter
-
-En `view.go`:
-Permitir que `NewView` reciba `opts ...view.Option` para configurar descripciones u opciones adicionales.
-
-Reemplazar `view.go`:
+## The contract (exported, exactly these signatures)
 
 ```go
-package patientdirectory
-
-import (
-	"webtyp.com/model"
-	"webtyp.com/router"
-	"webtyp.com/view"
-)
-
-// Item implementa view.Itemizer. Description es el RUT porque es lo que una
-// persona en el mostrador sostiene y lee de vuelta para confirmar que seleccionó
-// al paciente correcto.
-func (p *Patient) Item() view.Item {
-	return view.Item{ID: p.Id, Label: p.Name, Description: p.Rut}
-}
-
-const titlePatients = "Patients"
-
-// NewView construye el Presenter de pacientes —el motor agnóstico de renderizado
-// que un renderizador (crudview o cualquier otro) envuelve.
-func NewView(caller router.Caller, opts ...view.Option) view.Presenter {
-	b := view.NewCallerLister(caller,
-		view.Ops{Module: ModelName, List: OpListPatients, Save: OpUpsertPatient},
-		func() model.ModelSlice { return &PatientList{} })
-	allOpts := append([]view.Option{view.WithTitle(titlePatients)}, opts...)
-	return view.New(b, &Patient{}, allOpts...)
-}
+GetPatient(tenantID, id string) (name, documentNumber, phone, email string, found bool, err error)
+FindPatient(tenantID, documentNumber string) (id, name, phone, email string, found bool, err error)
+CreatePatient(tenantID, id, documentNumber, name, phone, email string) (patientID string, err error)
 ```
+Absent → `found == false` and `err == nil`; only a storage failure is an error. `CreatePatient` with a document
+already registered → `ErrRutAlreadyExists` (`model.Conflict`).
 
----
+Consumers (updated in parallel plans): `appointment_booking` declares `{GetPatient, FindPatient, CreatePatient}`,
+`clinical_encounter` declares `{GetPatient}`.
 
-## Stage 2: Declarar ui.Screens sin dependencias de layout
+## Design gate
 
-En `ui/browser.go`:
-Eliminar `Browser`.
-Implementar `Screens(caller router.Caller) []view.Screen`.
+1. Prior art: CRUD verbs (REST, Rails resources, Google AIP-131/133/134 Get/Create/Update) — the verbs everyone knows.
+2. Names: Get/Find/Create + Patient read aloud without docs.
+3. Ledger: exported methods 9 → 4 (`GetPatient`, `FindPatient`, `CreatePatient`, `ImportPatient`); ways to read a
+   patient 4 → 2 (by id, by document).
+4. Belongs here: owner of patients.
+5. Deletes: `LinkPatient`, `opLinkPatient` + its registration, `LinkPatientArgsModel`, `LinkPatientResultModel`
+   (`model.go:43,55`), `ClientExists`, `tests/link_patient_test.go`, `tests/client_exists_test.go`; exported
+   `FindByRut`, `UpdatePatient`, `ListPatients`, `DeactivatePatient` become unexported.
 
-Reescribir `ui/browser.go`:
+## Stage 1 — unexport the struct forms (`module.go`)
+
+| Today (exported) | Becomes |
+|---|---|
+| `GetPatient(tenantID, id) (Patient, error)` | `getPatient` |
+| `CreatePatient(p Patient) (Patient, error)` | `createPatient` |
+| `UpdatePatient(p Patient) (Patient, error)` | `updatePatient` |
+| `ListPatients(tenantID, filter) ([]Patient, error)` | `listPatients` |
+| `DeactivatePatient(tenantID, id) error` | `deactivatePatient` |
+| `FindByRut(tenantID, rut) (Patient, error)` | `findByDocument` |
+
+Rename every call (`ops.go`, `module.go`, `import.go`). `ImportPatient(p Patient) (Patient, error)` stays exported
+(mjosefa-cms `migrate/pastdb` uses it). `seed/seed.go:52` `m.CreatePatient(items[i])` → `m.ImportPatient(items[i])`.
+
+## Stage 2 — the three plain methods (`readers.go`, new)
 
 ```go
-package ui
-
-import (
-	patientdirectory "github.com/veltylabs/patient_directory"
-	"webtyp.com/lang"
-	"webtyp.com/router"
-	"webtyp.com/view"
-)
-
-const descPatients lang.Text = "Patient directory: personal data, contact information and identification."
-
-// Screens declara las pantallas que este módulo ofrece al menú de la app.
-func Screens(caller router.Caller) []view.Screen {
-	return []view.Screen{
-		{
-			ID:         ID,
-			Label:      Label,
-			Icon:       ID,
-			Permission: "patient",
-			Presenter:  patientdirectory.NewView(caller, view.WithDescription(descPatients)),
-		},
+// GetPatient lee un paciente por su id. Ausente u otro tenant ⇒ found=false, err=nil.
+// Ejemplo: name, doc, phone, email, ok, err := m.GetPatient("t1", "p1")
+func (m *Module) GetPatient(tenantID, id string) (name, documentNumber, phone, email string, found bool, err error) {
+	if tenantID == "" || id == "" {
+		return "", "", "", "", false, nil
 	}
+	p, err := m.getPatient(tenantID, id)
+	if model.KindOf(err) == model.ErrorNotFound {
+		return "", "", "", "", false, nil
+	}
+	if err != nil {
+		return "", "", "", "", false, err
+	}
+	return p.Name, p.Rut, p.Phone, p.Email, true, nil
+}
+
+// FindPatient busca un paciente por su número de documento (RUT). Ausente ⇒ found=false, err=nil.
+// Ejemplo: id, name, phone, email, ok, err := m.FindPatient("t1", "12.345.678-5")
+func (m *Module) FindPatient(tenantID, documentNumber string) (id, name, phone, email string, found bool, err error) {
+	p, err := m.findByDocument(tenantID, documentNumber)
+	if model.KindOf(err) == model.ErrorNotFound {
+		return "", "", "", "", false, nil
+	}
+	if err != nil {
+		return "", "", "", "", false, err
+	}
+	return p.Id, p.Name, p.Phone, p.Email, true, nil
+}
+
+// CreatePatient crea un paciente activo con RUT y devuelve su id. Documento ya registrado ⇒ ErrRutAlreadyExists.
+// Ejemplo: id, err := m.CreatePatient("t1", newID, "12.345.678-5", "Ana", "+56911223344", "ana@correo.cl")
+func (m *Module) CreatePatient(tenantID, id, documentNumber, name, phone, email string) (string, error) {
+	p, err := m.createPatient(Patient{
+		Id: id, TenantId: tenantID, DocumentType: kinds.DocumentRUT, Rut: documentNumber,
+		Name: name, Phone: phone, Email: email, IsActive: true,
+	})
+	if err != nil {
+		return "", err
+	}
+	return p.Id, nil
 }
 ```
 
----
+`findByDocument` returns `ErrNotFound` (`model.NotFound`) when absent, as `FindByRut` does today (`module.go:231`).
 
-## Stage 3: Actualizar pruebas unitarias
+## Stage 3 — deletions
 
-Actualizar las pruebas en `tests/` para verificar `ui.Screens(caller)`:
-- `len(screens) == 1`
-- `screens[0].Validate() == nil`
-- `screens[0].ID == ui.ID`
-- `screens[0].Permission == "patient"`
-- `screens[0].Presenter.(view.WithDescription).Description() != ""`
-- Asegurar que ningún archivo de prueba importe `webtyp.com/layout`.
+Delete everything in gate 5. Run `ormc` after editing `model.go`; `langc sync .`, remove keys it reports unused.
 
----
+## Stage 4 — module/ (copy `github.com/veltylabs/staff_manager/module`, rename)
 
-## Stage 4: Limpieza de dependencias en go.mod y verificación
-
-Ejecutar:
-```bash
-go mod tidy
+`module/module.go`: `var Module = appkit.Module{Name: "patient_directory", Server: server, Browser: browser}`.
+`module/server.go` (`//go:build !browser`):
+```go
+func build(d appkit.Deps) (model.ModuleNaming, error) {
+	return patientdirectory.New(d.DB, patientdirectory.Deps{
+		Publisher: d.Events, TenantID: d.TenantID, ValidateRUT: trustedip.ValidateRUT,
+	})
+}
 ```
+(`trustedip "webtyp.com/auth/trusted_ip"`, as staff_manager.) `module/browser.go` (`//go:build browser`):
+`Screens: func(d appkit.BrowserDeps) []view.Screen { return ui.Screens(d.Caller) }`.
 
-Verificar que:
-1. `grep "webtyp.com/layout" go.mod` retorna vacío.
-2. `grep "webtyp.com/layout" go.sum` retorna vacío.
-3. `grep -rn "webtyp.com/layout" .` retorna vacío.
+## Stage 5 — tests
 
-Ejecutar la suite de pruebas completa:
-```bash
-gotest
-```
+Existing tests in `tests/` (external package) that call the now-unexported methods switch to `ImportPatient` to set
+up data, the plain methods to read, or the ops (as `ops_test.go`). Never export a method for a test. New
+`tests/readers_test.go`:
 
----
-
-## Stage 5: Documentación y regla de idioma en veltylabs
-
-1. En `AGENTS.md` y `README.md`, reemplazar referencias a `ui.Browser(...) (platformd.UIModule, error)` por `ui.Screens(caller router.Caller) []view.Screen`.
-2. Ejecutar `langc sync .` y verificar 0 errores.
-
----
-
-## Stages table
-
-| Etapa | Archivos modificados | Qué hace |
+| Test | Setup → call | Expected |
 |---|---|---|
-| Stage 1 | `view.go` | Agrega `opts ...view.Option` a `NewView` |
-| Stage 2 | `ui/browser.go` | Exporta `ui.Screens` y elimina imports de `layout` |
-| Stage 3 | `tests/` | Valida `ui.Screens` y remueve dependencias de `layout` |
-| Stage 4 | `go.mod`, `go.sum` | `go mod tidy` y ejecución de `gotest` |
-| Stage 5 | `AGENTS.md`, `README.md`, `lang.json` | Actualiza documentación en español y sincroniza `langc` |
+| `TestGetPatient` | `ImportPatient` p1 "Ana", RUT "12.345.678-5" → `GetPatient("t1","p1")` | "Ana", stored RUT, phone, email, `true`, nil |
+| `TestGetPatientMissing` | → `GetPatient("t1","zz")`; p1 → `GetPatient("t2","p1")` | `found == false`, `err == nil` both |
+| `TestFindPatient` | p1 → `FindPatient("t1","12345678-5")` | `"p1"`, `true` |
+| `TestFindPatientMissing` | → `FindPatient("t1","11.111.111-1")` | `found == false`, `err == nil` |
+| `TestCreatePatient` | `CreatePatient("t1","p2","12.345.678-5","Ana","","")` → `FindPatient` | `"p2"` |
+| `TestCreatePatientDuplicate` | p1 has that RUT → `CreatePatient(...,"p3",...)` | `errors.Is(err, ErrRutAlreadyExists)` |
+
+## Stage 6 — docs (Spanish)
+
+`README.md` Step-by-Step: `Modules: []appkit.Module{patientdirectory.Module}` and the three methods; `docs/ARCHITECTURE.md`:
+the six-verb rule, plain values, unexported struct forms; no `LinkPatient`/`ClientExists`.
 
 ## Delivery check
 
-1. `grep -rn "webtyp.com/layout" .` retorna vacío.
-2. `gotest` pasa con 0 fallos de compilación, 0 fallos de tests y cobertura verificada.
-3. `langc sync .` pasa sin errores.
-4. El PR se abre inmediatamente al pasar estas comprobaciones.
+1. `gotest` passes; `langc sync .` → 0 untranslated, 0 reuse warnings.
+2. `grep -rn "LinkPatient\|ClientExists\|link_patient\|FindByRut" --include=*.go --include=*.md --include=*.json .` → empty.
+3. `grep -n "^func (m \*Module) [A-Z]" *.go | grep -v "op\|ModelName\|MountOperations"` lists only `GetPatient`,
+   `FindPatient`, `CreatePatient`, `ImportPatient`.
+
+Commit after every stage. Never edit `model_orm.go` by hand; a build error there means the hand-written code is wrong.
+Never run `git reset`, `git restore`, `git checkout -- <file>` or `git stash` on your own work. Stuck 30 minutes: open
+the PR anyway listing what fails. A PR that does not compile, or whose tests could not run, is a failed delivery.
+Environment: `GOPRIVATE=webtyp.com/*,github.com/veltylabs/*`, `GOFLAGS=-mod=mod`, `go mod tidy` before `ormc`.
+If a signature in the published tag differs from what this plan states, stop and name the symbol in the PR; never adapt it by guessing.
+
+## Stages
+
+| Stage | Files | Done when |
+|---|---|---|
+| 1 | `module.go`, `ops.go`, `import.go`, `seed/seed.go` | compiles |
+| 2 | `readers.go` | compiles |
+| 3 | `module.go`, `ops.go`, `model.go`, `model_orm.go` (ormc), `lang.json`, 2 test files deleted | compiles |
+| 4 | `module/module.go`, `module/server.go`, `module/browser.go` | compiles for browser |
+| 5 | `tests/*` | tests pass |
+| 6 | `README.md`, `docs/ARCHITECTURE.md` | done |

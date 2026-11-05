@@ -49,7 +49,7 @@ func Load(m *patientdirectory.Module, tenantID string) (Data, error) {
 
 	var data Data
 	for i := range items {
-		p, err := m.CreatePatient(items[i])
+		p, err := m.ImportPatient(items[i])
 		if err != nil {
 			return Data{}, err
 		}

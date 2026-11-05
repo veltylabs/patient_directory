@@ -9,125 +9,73 @@ import (
 )
 
 type Patient struct {
-	Id                 string
-	TenantId           string
-	Rut                string
-	DocumentType       string
-	DocumentCountry    string
-	Name               string
-	Birthdate          string
+	Id string
+	TenantId string
+	Rut string
+	DocumentType string
+	DocumentCountry string
+	Name string
+	Birthdate string
 	BirthdateEstimated bool
-	Sex                string
-	Phone              string
-	Email              string
-	Address            string
-	Notes              string
-	IsActive           bool
-	UpdatedAt          time.Nano
+	Sex string
+	Phone string
+	Email string
+	Address string
+	Notes string
+	IsActive bool
+	UpdatedAt time.Nano
 }
 
 func (m *Patient) ModelName() string { return "patient" }
 
 func (m *Patient) Schema() []model.Field { return PatientModel.Fields }
 
-func (m *Patient) Pointers() []any {
-	return []any{&m.Id, &m.TenantId, &m.Rut, &m.DocumentType, &m.DocumentCountry, &m.Name, &m.Birthdate, &m.BirthdateEstimated, &m.Sex, &m.Phone, &m.Email, &m.Address, &m.Notes, &m.IsActive, (*int64)(&m.UpdatedAt)}
-}
+func (m *Patient) Pointers() []any { return []any{&m.Id, &m.TenantId, &m.Rut, &m.DocumentType, &m.DocumentCountry, &m.Name, &m.Birthdate, &m.BirthdateEstimated, &m.Sex, &m.Phone, &m.Email, &m.Address, &m.Notes, &m.IsActive, (*int64)(&m.UpdatedAt)} }
 
 func (m *Patient) IsNil() bool { return m == nil }
 
 func (m *Patient) EncodeFields(w model.FieldWriter) {
-	if m.Id != "" {
-		w.String("id", m.Id)
-	}
+	if m.Id != "" { w.String("id", m.Id) }
 	w.String("tenant_id", m.TenantId)
-	if m.Rut != "" {
-		w.String("rut", m.Rut)
-	}
+	if m.Rut != "" { w.String("rut", m.Rut) }
 	w.String("document_type", m.DocumentType)
-	if m.DocumentCountry != "" {
-		w.String("document_country", m.DocumentCountry)
-	}
+	if m.DocumentCountry != "" { w.String("document_country", m.DocumentCountry) }
 	w.String("name", m.Name)
-	if m.Birthdate != "" {
-		w.String("birthdate", m.Birthdate)
-	}
+	if m.Birthdate != "" { w.String("birthdate", m.Birthdate) }
 	w.Bool("birthdate_estimated", m.BirthdateEstimated)
-	if m.Sex != "" {
-		w.String("sex", m.Sex)
-	}
-	if m.Phone != "" {
-		w.String("phone", m.Phone)
-	}
-	if m.Email != "" {
-		w.String("email", m.Email)
-	}
-	if m.Address != "" {
-		w.String("address", m.Address)
-	}
-	if m.Notes != "" {
-		w.String("notes", m.Notes)
-	}
+	if m.Sex != "" { w.String("sex", m.Sex) }
+	if m.Phone != "" { w.String("phone", m.Phone) }
+	if m.Email != "" { w.String("email", m.Email) }
+	if m.Address != "" { w.String("address", m.Address) }
+	if m.Notes != "" { w.String("notes", m.Notes) }
 	w.Bool("is_active", m.IsActive)
-	if m.UpdatedAt != 0 {
-		w.Int("updated_at", int64(m.UpdatedAt))
-	}
+	if m.UpdatedAt != 0 { w.Int("updated_at", int64(m.UpdatedAt)) }
 }
 
 func (m *Patient) DecodeFields(r model.FieldReader) {
-	if v, ok := r.String("id"); ok {
-		m.Id = v
-	}
-	if v, ok := r.String("tenant_id"); ok {
-		m.TenantId = v
-	}
-	if v, ok := r.String("rut"); ok {
-		m.Rut = v
-	}
-	if v, ok := r.String("document_type"); ok {
-		m.DocumentType = v
-	}
-	if v, ok := r.String("document_country"); ok {
-		m.DocumentCountry = v
-	}
-	if v, ok := r.String("name"); ok {
-		m.Name = v
-	}
-	if v, ok := r.String("birthdate"); ok {
-		m.Birthdate = v
-	}
-	if v, ok := r.Bool("birthdate_estimated"); ok {
-		m.BirthdateEstimated = v
-	}
-	if v, ok := r.String("sex"); ok {
-		m.Sex = v
-	}
-	if v, ok := r.String("phone"); ok {
-		m.Phone = v
-	}
-	if v, ok := r.String("email"); ok {
-		m.Email = v
-	}
-	if v, ok := r.String("address"); ok {
-		m.Address = v
-	}
-	if v, ok := r.String("notes"); ok {
-		m.Notes = v
-	}
-	if v, ok := r.Bool("is_active"); ok {
-		m.IsActive = v
-	}
-	if v, ok := r.Int("updated_at"); ok {
-		m.UpdatedAt = time.Nano(v)
-	}
+	if v, ok := r.String("id"); ok { m.Id = v }
+	if v, ok := r.String("tenant_id"); ok { m.TenantId = v }
+	if v, ok := r.String("rut"); ok { m.Rut = v }
+	if v, ok := r.String("document_type"); ok { m.DocumentType = v }
+	if v, ok := r.String("document_country"); ok { m.DocumentCountry = v }
+	if v, ok := r.String("name"); ok { m.Name = v }
+	if v, ok := r.String("birthdate"); ok { m.Birthdate = v }
+	if v, ok := r.Bool("birthdate_estimated"); ok { m.BirthdateEstimated = v }
+	if v, ok := r.String("sex"); ok { m.Sex = v }
+	if v, ok := r.String("phone"); ok { m.Phone = v }
+	if v, ok := r.String("email"); ok { m.Email = v }
+	if v, ok := r.String("address"); ok { m.Address = v }
+	if v, ok := r.String("notes"); ok { m.Notes = v }
+	if v, ok := r.Bool("is_active"); ok { m.IsActive = v }
+	if v, ok := r.Int("updated_at"); ok { m.UpdatedAt = time.Nano(v) }
 }
 
 type PatientList []*Patient
 
-func (s *PatientList) Len() int                         { return len(*s) }
-func (s *PatientList) At(i int) model.Fielder           { return (*s)[i] }
-func (s *PatientList) Append() model.Fielder            { v := &Patient{}; *s = append(*s, v); return v }
-func (s *PatientList) IsNil() bool                      { return s == nil }
+func (s *PatientList) Len() int             { return len(*s) }
+func (s *PatientList) At(i int) model.Fielder { return (*s)[i] }
+func (s *PatientList) Append() model.Fielder  { v := &Patient{}; *s = append(*s, v); return v }
+func (s *PatientList) IsNil() bool          { return s == nil }
 func (s *PatientList) EncodeFields(_ model.FieldWriter) {}
 func (s *PatientList) DecodeFields(_ model.FieldReader) {}
 
@@ -140,37 +88,37 @@ func (m *Patient) Item() model.Item {
 }
 
 var Patient_ = struct {
-	Id                 string
-	TenantId           string
-	Rut                string
-	DocumentType       string
-	DocumentCountry    string
-	Name               string
-	Birthdate          string
+	Id string
+	TenantId string
+	Rut string
+	DocumentType string
+	DocumentCountry string
+	Name string
+	Birthdate string
 	BirthdateEstimated string
-	Sex                string
-	Phone              string
-	Email              string
-	Address            string
-	Notes              string
-	IsActive           string
-	UpdatedAt          string
+	Sex string
+	Phone string
+	Email string
+	Address string
+	Notes string
+	IsActive string
+	UpdatedAt string
 }{
-	Id:                 "id",
-	TenantId:           "tenant_id",
-	Rut:                "rut",
-	DocumentType:       "document_type",
-	DocumentCountry:    "document_country",
-	Name:               "name",
-	Birthdate:          "birthdate",
+	Id: "id",
+	TenantId: "tenant_id",
+	Rut: "rut",
+	DocumentType: "document_type",
+	DocumentCountry: "document_country",
+	Name: "name",
+	Birthdate: "birthdate",
 	BirthdateEstimated: "birthdate_estimated",
-	Sex:                "sex",
-	Phone:              "phone",
-	Email:              "email",
-	Address:            "address",
-	Notes:              "notes",
-	IsActive:           "is_active",
-	UpdatedAt:          "updated_at",
+	Sex: "sex",
+	Phone: "phone",
+	Email: "email",
+	Address: "address",
+	Notes: "notes",
+	IsActive: "is_active",
+	UpdatedAt: "updated_at",
 }
 
 func ReadOnePatient(qb *orm.QB, model *Patient) (*Patient, error) {
@@ -190,162 +138,18 @@ func ReadAllPatient(qb *orm.QB) (PatientList, error) {
 	return results, err
 }
 
-type LinkPatientArgs struct {
-	TenantId string
-	Id       string
-	Rut      string
-	Name     string
-	Phone    string
-	Email    string
-}
-
-func (m *LinkPatientArgs) ModelName() string { return "link_patient_args" }
-
-func (m *LinkPatientArgs) Schema() []model.Field { return LinkPatientArgsModel.Fields }
-
-func (m *LinkPatientArgs) Pointers() []any {
-	return []any{&m.TenantId, &m.Id, &m.Rut, &m.Name, &m.Phone, &m.Email}
-}
-
-func (m *LinkPatientArgs) IsNil() bool { return m == nil }
-
-func (m *LinkPatientArgs) EncodeFields(w model.FieldWriter) {
-	w.String("tenant_id", m.TenantId)
-	w.String("id", m.Id)
-	w.String("rut", m.Rut)
-	w.String("name", m.Name)
-	w.String("phone", m.Phone)
-	w.String("email", m.Email)
-}
-
-func (m *LinkPatientArgs) DecodeFields(r model.FieldReader) {
-	if v, ok := r.String("tenant_id"); ok {
-		m.TenantId = v
-	}
-	if v, ok := r.String("id"); ok {
-		m.Id = v
-	}
-	if v, ok := r.String("rut"); ok {
-		m.Rut = v
-	}
-	if v, ok := r.String("name"); ok {
-		m.Name = v
-	}
-	if v, ok := r.String("phone"); ok {
-		m.Phone = v
-	}
-	if v, ok := r.String("email"); ok {
-		m.Email = v
-	}
-}
-
-type LinkPatientArgsList []*LinkPatientArgs
-
-func (s *LinkPatientArgsList) Len() int               { return len(*s) }
-func (s *LinkPatientArgsList) At(i int) model.Fielder { return (*s)[i] }
-func (s *LinkPatientArgsList) Append() model.Fielder {
-	v := &LinkPatientArgs{}
-	*s = append(*s, v)
-	return v
-}
-func (s *LinkPatientArgsList) IsNil() bool                      { return s == nil }
-func (s *LinkPatientArgsList) EncodeFields(_ model.FieldWriter) {}
-func (s *LinkPatientArgsList) DecodeFields(_ model.FieldReader) {}
-
-func (m *LinkPatientArgs) Validate(action byte) error {
-	return model.ValidateFields(action, m)
-}
-
-func (m *LinkPatientArgs) Item() model.Item {
-	return model.Item{ID: m.Id, Label: m.Name, Description: m.Rut}
-}
-
-var LinkPatientArgs_ = struct {
-	TenantId string
-	Id       string
-	Rut      string
-	Name     string
-	Phone    string
-	Email    string
-}{
-	TenantId: "tenant_id",
-	Id:       "id",
-	Rut:      "rut",
-	Name:     "name",
-	Phone:    "phone",
-	Email:    "email",
-}
-
-func ReadOneLinkPatientArgs(qb *orm.QB, model *LinkPatientArgs) (*LinkPatientArgs, error) {
-	err := qb.ReadOne()
-	if err != nil {
-		return nil, err
-	}
-	return model, nil
-}
-
-func ReadAllLinkPatientArgs(qb *orm.QB) (LinkPatientArgsList, error) {
-	var results LinkPatientArgsList
-	err := qb.ReadAll(
-		func() model.Model { return &LinkPatientArgs{} },
-		func(m model.Model) { results = append(results, m.(*LinkPatientArgs)) },
-	)
-	return results, err
-}
-
-type LinkPatientResult struct {
-	Id string
-}
-
-func (m *LinkPatientResult) ModelName() string { return "link_patient_result" }
-
-func (m *LinkPatientResult) Schema() []model.Field { return LinkPatientResultModel.Fields }
-
-func (m *LinkPatientResult) Pointers() []any { return []any{&m.Id} }
-
-func (m *LinkPatientResult) IsNil() bool { return m == nil }
-
-func (m *LinkPatientResult) EncodeFields(w model.FieldWriter) {
-	w.String("id", m.Id)
-}
-
-func (m *LinkPatientResult) DecodeFields(r model.FieldReader) {
-	if v, ok := r.String("id"); ok {
-		m.Id = v
-	}
-}
-
-type LinkPatientResultList []*LinkPatientResult
-
-func (s *LinkPatientResultList) Len() int               { return len(*s) }
-func (s *LinkPatientResultList) At(i int) model.Fielder { return (*s)[i] }
-func (s *LinkPatientResultList) Append() model.Fielder {
-	v := &LinkPatientResult{}
-	*s = append(*s, v)
-	return v
-}
-func (s *LinkPatientResultList) IsNil() bool                      { return s == nil }
-func (s *LinkPatientResultList) EncodeFields(_ model.FieldWriter) {}
-func (s *LinkPatientResultList) DecodeFields(_ model.FieldReader) {}
-
-func (m *LinkPatientResult) Validate(action byte) error {
-	return model.ValidateFields(action, m)
-}
-
 type ListPatientsArgs struct {
-	TenantId   string
+	TenantId string
 	ActiveOnly bool
-	Limit      int64
-	Offset     int64
+	Limit int64
+	Offset int64
 }
 
 func (m *ListPatientsArgs) ModelName() string { return "list_patients_args" }
 
 func (m *ListPatientsArgs) Schema() []model.Field { return ListPatientsArgsModel.Fields }
 
-func (m *ListPatientsArgs) Pointers() []any {
-	return []any{&m.TenantId, &m.ActiveOnly, &m.Limit, &m.Offset}
-}
+func (m *ListPatientsArgs) Pointers() []any { return []any{&m.TenantId, &m.ActiveOnly, &m.Limit, &m.Offset} }
 
 func (m *ListPatientsArgs) IsNil() bool { return m == nil }
 
@@ -357,30 +161,18 @@ func (m *ListPatientsArgs) EncodeFields(w model.FieldWriter) {
 }
 
 func (m *ListPatientsArgs) DecodeFields(r model.FieldReader) {
-	if v, ok := r.String("tenant_id"); ok {
-		m.TenantId = v
-	}
-	if v, ok := r.Bool("active_only"); ok {
-		m.ActiveOnly = v
-	}
-	if v, ok := r.Int("limit"); ok {
-		m.Limit = v
-	}
-	if v, ok := r.Int("offset"); ok {
-		m.Offset = v
-	}
+	if v, ok := r.String("tenant_id"); ok { m.TenantId = v }
+	if v, ok := r.Bool("active_only"); ok { m.ActiveOnly = v }
+	if v, ok := r.Int("limit"); ok { m.Limit = v }
+	if v, ok := r.Int("offset"); ok { m.Offset = v }
 }
 
 type ListPatientsArgsList []*ListPatientsArgs
 
-func (s *ListPatientsArgsList) Len() int               { return len(*s) }
+func (s *ListPatientsArgsList) Len() int             { return len(*s) }
 func (s *ListPatientsArgsList) At(i int) model.Fielder { return (*s)[i] }
-func (s *ListPatientsArgsList) Append() model.Fielder {
-	v := &ListPatientsArgs{}
-	*s = append(*s, v)
-	return v
-}
-func (s *ListPatientsArgsList) IsNil() bool                      { return s == nil }
+func (s *ListPatientsArgsList) Append() model.Fielder  { v := &ListPatientsArgs{}; *s = append(*s, v); return v }
+func (s *ListPatientsArgsList) IsNil() bool          { return s == nil }
 func (s *ListPatientsArgsList) EncodeFields(_ model.FieldWriter) {}
 func (s *ListPatientsArgsList) DecodeFields(_ model.FieldReader) {}
 
@@ -390,7 +182,7 @@ func (m *ListPatientsArgs) Validate(action byte) error {
 
 type GetPatientArgs struct {
 	TenantId string
-	Id       string
+	Id string
 }
 
 func (m *GetPatientArgs) ModelName() string { return "get_patient_args" }
@@ -407,24 +199,16 @@ func (m *GetPatientArgs) EncodeFields(w model.FieldWriter) {
 }
 
 func (m *GetPatientArgs) DecodeFields(r model.FieldReader) {
-	if v, ok := r.String("tenant_id"); ok {
-		m.TenantId = v
-	}
-	if v, ok := r.String("id"); ok {
-		m.Id = v
-	}
+	if v, ok := r.String("tenant_id"); ok { m.TenantId = v }
+	if v, ok := r.String("id"); ok { m.Id = v }
 }
 
 type GetPatientArgsList []*GetPatientArgs
 
-func (s *GetPatientArgsList) Len() int               { return len(*s) }
+func (s *GetPatientArgsList) Len() int             { return len(*s) }
 func (s *GetPatientArgsList) At(i int) model.Fielder { return (*s)[i] }
-func (s *GetPatientArgsList) Append() model.Fielder {
-	v := &GetPatientArgs{}
-	*s = append(*s, v)
-	return v
-}
-func (s *GetPatientArgsList) IsNil() bool                      { return s == nil }
+func (s *GetPatientArgsList) Append() model.Fielder  { v := &GetPatientArgs{}; *s = append(*s, v); return v }
+func (s *GetPatientArgsList) IsNil() bool          { return s == nil }
 func (s *GetPatientArgsList) EncodeFields(_ model.FieldWriter) {}
 func (s *GetPatientArgsList) DecodeFields(_ model.FieldReader) {}
 
@@ -434,7 +218,7 @@ func (m *GetPatientArgs) Validate(action byte) error {
 
 type FindPatientByRutArgs struct {
 	TenantId string
-	Rut      string
+	Rut string
 }
 
 func (m *FindPatientByRutArgs) ModelName() string { return "find_patient_by_rut_args" }
@@ -451,24 +235,16 @@ func (m *FindPatientByRutArgs) EncodeFields(w model.FieldWriter) {
 }
 
 func (m *FindPatientByRutArgs) DecodeFields(r model.FieldReader) {
-	if v, ok := r.String("tenant_id"); ok {
-		m.TenantId = v
-	}
-	if v, ok := r.String("rut"); ok {
-		m.Rut = v
-	}
+	if v, ok := r.String("tenant_id"); ok { m.TenantId = v }
+	if v, ok := r.String("rut"); ok { m.Rut = v }
 }
 
 type FindPatientByRutArgsList []*FindPatientByRutArgs
 
-func (s *FindPatientByRutArgsList) Len() int               { return len(*s) }
+func (s *FindPatientByRutArgsList) Len() int             { return len(*s) }
 func (s *FindPatientByRutArgsList) At(i int) model.Fielder { return (*s)[i] }
-func (s *FindPatientByRutArgsList) Append() model.Fielder {
-	v := &FindPatientByRutArgs{}
-	*s = append(*s, v)
-	return v
-}
-func (s *FindPatientByRutArgsList) IsNil() bool                      { return s == nil }
+func (s *FindPatientByRutArgsList) Append() model.Fielder  { v := &FindPatientByRutArgs{}; *s = append(*s, v); return v }
+func (s *FindPatientByRutArgsList) IsNil() bool          { return s == nil }
 func (s *FindPatientByRutArgsList) EncodeFields(_ model.FieldWriter) {}
 func (s *FindPatientByRutArgsList) DecodeFields(_ model.FieldReader) {}
 
@@ -478,7 +254,7 @@ func (m *FindPatientByRutArgs) Validate(action byte) error {
 
 type DeactivatePatientArgs struct {
 	TenantId string
-	Id       string
+	Id string
 }
 
 func (m *DeactivatePatientArgs) ModelName() string { return "deactivate_patient_args" }
@@ -495,27 +271,20 @@ func (m *DeactivatePatientArgs) EncodeFields(w model.FieldWriter) {
 }
 
 func (m *DeactivatePatientArgs) DecodeFields(r model.FieldReader) {
-	if v, ok := r.String("tenant_id"); ok {
-		m.TenantId = v
-	}
-	if v, ok := r.String("id"); ok {
-		m.Id = v
-	}
+	if v, ok := r.String("tenant_id"); ok { m.TenantId = v }
+	if v, ok := r.String("id"); ok { m.Id = v }
 }
 
 type DeactivatePatientArgsList []*DeactivatePatientArgs
 
-func (s *DeactivatePatientArgsList) Len() int               { return len(*s) }
+func (s *DeactivatePatientArgsList) Len() int             { return len(*s) }
 func (s *DeactivatePatientArgsList) At(i int) model.Fielder { return (*s)[i] }
-func (s *DeactivatePatientArgsList) Append() model.Fielder {
-	v := &DeactivatePatientArgs{}
-	*s = append(*s, v)
-	return v
-}
-func (s *DeactivatePatientArgsList) IsNil() bool                      { return s == nil }
+func (s *DeactivatePatientArgsList) Append() model.Fielder  { v := &DeactivatePatientArgs{}; *s = append(*s, v); return v }
+func (s *DeactivatePatientArgsList) IsNil() bool          { return s == nil }
 func (s *DeactivatePatientArgsList) EncodeFields(_ model.FieldWriter) {}
 func (s *DeactivatePatientArgsList) DecodeFields(_ model.FieldReader) {}
 
 func (m *DeactivatePatientArgs) Validate(action byte) error {
 	return model.ValidateFields(action, m)
 }
+

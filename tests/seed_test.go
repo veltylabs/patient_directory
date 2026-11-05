@@ -31,13 +31,11 @@ func TestSeed_Load(t *testing.T) {
 		t.Fatalf("se esperaban 3 pacientes en seed.Data, se obtuvieron %d", len(data.Patients))
 	}
 
-	patients, err := mod.ListPatients("demo", patientdirectory.PatientFilter{})
-	if err != nil {
-		t.Fatalf("mod.ListPatients: %v", err)
-	}
-
-	if len(patients) != 3 {
-		t.Fatalf("se esperaban 3 pacientes en el módulo, se obtuvieron %d", len(patients))
+	for _, p := range data.Patients {
+		name, _, _, _, found, err := mod.GetPatient("demo", p.Id)
+		if err != nil || !found || name != p.Name {
+			t.Fatalf("mod.GetPatient(%s): found=%v err=%v name=%s", p.Id, found, err, name)
+		}
 	}
 
 	// Segundo intento no debería duplicar ni fallar
@@ -50,12 +48,10 @@ func TestSeed_Load(t *testing.T) {
 		t.Fatalf("se esperaban 3 pacientes en seed.Data en el segundo intento, se obtuvieron %d", len(data2.Patients))
 	}
 
-	patients2, err := mod.ListPatients("demo", patientdirectory.PatientFilter{})
-	if err != nil {
-		t.Fatalf("mod.ListPatients 2: %v", err)
-	}
-
-	if len(patients2) != 3 {
-		t.Fatalf("se esperaban 3 pacientes en el módulo tras el segundo intento, se obtuvieron %d", len(patients2))
+	for _, p := range data2.Patients {
+		name, _, _, _, found, err := mod.GetPatient("demo", p.Id)
+		if err != nil || !found || name != p.Name {
+			t.Fatalf("mod.GetPatient(%s) 2: found=%v err=%v name=%s", p.Id, found, err, name)
+		}
 	}
 }

@@ -17,8 +17,6 @@ import (
 // de columna única, y un RUT es único por TENANT, no globalmente. La restricción
 // se aplica en CreatePatient contra ErrRutAlreadyExists —la misma regla de capa de
 // aplicación que device_manager aplica a una IP de dispositivo.
-var ResourcePatientLink = model.FeatureResource("patient_link")
-
 var PatientModel = model.Definition{
 	Name: "patient",
 	Fields: model.Fields{
@@ -37,25 +35,6 @@ var PatientModel = model.Definition{
 		{Name: "notes", Type: input.Textarea(), Label: "Notes", Help: "Anything the front desk must know about this patient, e.g. the old paper file number.", OmitEmpty: true},
 		{Name: "is_active", Type: input.Checkbox(), Label: "Active"},
 		{Name: "updated_at", Type: model.NanoTime(), OmitEmpty: true},
-	},
-}
-
-var LinkPatientArgsModel = model.Definition{
-	Name: "link_patient_args",
-	Fields: model.Fields{
-		{Name: "tenant_id", Type: model.Text(), NotNull: true},
-		{Name: "id", Type: model.Text(), DB: &model.FieldDB{PK: true}, NotNull: true},
-		{Name: "rut", Type: input.Rut(), Label: "Rut", NotNull: true, Permitted: model.Permitted{Minimum: 1, Maximum: 12}, Item: model.ItemDescription},
-		{Name: "name", Type: input.Text(), Label: "Name", NotNull: true, Permitted: model.Permitted{Minimum: 1, Maximum: 255}, Item: model.ItemLabel},
-		{Name: "phone", Type: input.Phone(), Label: "Phone", NotNull: true},
-		{Name: "email", Type: input.Email(), Label: "Email", NotNull: true},
-	},
-}
-
-var LinkPatientResultModel = model.Definition{
-	Name: "link_patient_result",
-	Fields: model.Fields{
-		{Name: "id", Type: model.Text()},
 	},
 }
 
