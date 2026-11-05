@@ -3,7 +3,7 @@ module github.com/veltylabs/patient_directory
 go 1.26.8
 
 require (
-	webtyp.com/appkit v0.2.9
+	webtyp.com/appkit v0.2.10
 	webtyp.com/auth v0.0.102
 	webtyp.com/ddl v0.0.39
 	webtyp.com/dom v0.13.29
@@ -64,5 +64,3 @@ require (
 	webtyp.com/webauthn v0.1.16 // indirect
 	webtyp.com/widget v0.6.46 // indirect
 )
-
-replace webtyp.com/appkit => ../../../webtyp/appkit
