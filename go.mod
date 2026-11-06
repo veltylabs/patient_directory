@@ -4,7 +4,7 @@ go 1.26.8
 
 require (
 	webtyp.com/appkit v0.2.18
-	webtyp.com/auth v0.0.109
+	webtyp.com/auth v0.0.111
 	webtyp.com/ddl v0.0.46
 	webtyp.com/dom v0.13.29
 	webtyp.com/events v0.1.7
@@ -21,7 +21,7 @@ require (
 	webtyp.com/svg v0.3.33
 	webtyp.com/time v0.6.4
 	webtyp.com/unixid v0.3.1
-	webtyp.com/view v0.6.63
+	webtyp.com/view v0.6.64
 )
 
 require (
