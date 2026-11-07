@@ -1,179 +1,191 @@
 ---
-PLAN: "feat!: six-verb plain API (GetPatient, FindPatient, CreatePatient); struct methods unexported; LinkPatient and ClientExists removed; module/"
+PLAN: "feat!: paged lists searched on the server (view v0.6.64)"
 EXECUTOR: jules
 REVIEWER: none
 STATUS: running
-SESSION: 434415614690636480
+SESSION: 4676144358058285938
 ---
 
 > Read AGENTS.md at the repo root before any change.
 > **Finish by yourself:** when the delivery check passes, commit, push and open the pull request. Never ask whether to
 > proceed or finalize — nobody answers, and a session that waits ends without your work.
 
-# Plan — patient_directory exports three plain methods any module can declare
+# patient_directory — paged lists searched on the server
+
+`webtyp.com/view` v0.6.64 changed its list contract. Until this repo follows it, its list screens answer 400
+("cannot read the request") because the view now sends `view.ListArgs` to the list operation. The full recipe is
+restated below; source: `https://github.com/webtyp/view/blob/main/docs/LIST_PAGING.md`.
 
 ## Tools
 
-```bash
+```
 go install webtyp.com/devflow/cmd/gotest@latest
-go install webtyp.com/ormc/cmd/ormc@latest
 go install webtyp.com/lang/cmd/langc@latest
-go get webtyp.com/time@v0.6.4 webtyp.com/appkit@v0.2.8
+go get webtyp.com/view@v0.6.64
+go get webtyp.com/layout@latest   # the release that moved crudview to view v0.6.64
 ```
 
-## Why
+Environment: `GOPRIVATE=webtyp.com/*,github.com/veltylabs/*`, `GOFLAGS=-mod=mod`, `go mod tidy` after `go get`.
 
-A module cannot hand its `Patient` type to another module, so each consumer asked for its own plain variant with an
-invented name: today this module has 6 names to read and create a patient (`ClientExists`, `FindByRut`,
-`GetPatient`, `CreatePatient`, `LinkPatient` + the ones `appointment_booking`/`clinical_encounter` ask for), and an
-app with those modules does not start. New ecosystem rule (module-layout «Six verbs, one name per job"): every
-exported method is `<Verb><Entity>` with `Get`, `Find`, `List`, `Create`, `Update`, `Delete` (+ `Import<Entity>`),
-plain values in and out; forms with the module's own type are unexported and used only by its ops.
+## Sites in this repo (found by grep — change every one)
 
-## The contract (exported, exactly these signatures)
+`view.Ops` declarations (each list operation named in `List:` accepts `view.ListArgs`; each `Ops` gets its `Page`):
 
-```go
-GetPatient(tenantID, id string) (name, documentNumber, phone, email string, found bool, err error)
-FindPatient(tenantID, documentNumber string) (id, name, phone, email string, found bool, err error)
-CreatePatient(tenantID, id, documentNumber, name, phone, email string) (patientID string, err error)
 ```
-Absent → `found == false` and `err == nil`; only a storage failure is an error. `CreatePatient` with a document
-already registered → `ErrRutAlreadyExists` (`model.Conflict`).
+./view.go:22:		view.Ops{Module: ModelName, List: OpListPatients, Save: OpUpsertPatient},
+```
 
-Consumers (updated in parallel plans): `appointment_booking` declares `{GetPatient, FindPatient, CreatePatient}`,
-`clinical_encounter` declares `{GetPatient}`.
+Hand-written `view.Lister` implementations (new `List(args view.ListArgs, done …)` and `Page()`):
 
-## Design gate
+```
+(none)
+```
 
-1. Prior art: CRUD verbs (REST, Rails resources, Google AIP-131/133/134 Get/Create/Update) — the verbs everyone knows.
-2. Names: Get/Find/Create + Patient read aloud without docs.
-3. Ledger: exported methods 9 → 4 (`GetPatient`, `FindPatient`, `CreatePatient`, `ImportPatient`); ways to read a
-   patient 4 → 2 (by id, by document).
-4. Belongs here: owner of patients.
-5. Deletes: `LinkPatient`, `opLinkPatient` + its registration, `LinkPatientArgsModel`, `LinkPatientResultModel`
-   (`model.go:43,55`), `ClientExists`, `tests/link_patient_test.go`, `tests/client_exists_test.go`; exported
-   `FindByRut`, `UpdatePatient`, `ListPatients`, `DeactivatePatient` become unexported.
+Calls to the deleted `Presenter.Filter` (→ `Search(term, nil)` then `Items()`):
 
-## Stage 1 — unexport the struct forms (`module.go`)
+```
+(none)
+```
 
-| Today (exported) | Becomes |
+## Page of each list
+
+| List operation | `Page` in its `view.Ops` |
 |---|---|
-| `GetPatient(tenantID, id) (Patient, error)` | `getPatient` |
-| `CreatePatient(p Patient) (Patient, error)` | `createPatient` |
-| `UpdatePatient(p Patient) (Patient, error)` | `updatePatient` |
-| `ListPatients(tenantID, filter) ([]Patient, error)` | `listPatients` |
-| `DeactivatePatient(tenantID, id) error` | `deactivatePatient` |
-| `FindByRut(tenantID, rut) (Patient, error)` | `findByDocument` |
+| `OpListPatients` | `view.Page{First: 0, Size: 20, More: true}` |
 
-Rename every call (`ops.go`, `module.go`, `import.go`). `ImportPatient(p Patient) (Patient, error)` stays exported
-(mjosefa-cms `migrate/pastdb` uses it). `seed/seed.go:52` `m.CreatePatient(items[i])` → `m.ImportPatient(items[i])`.
+## Recipe
 
-## Stage 2 — the three plain methods (`readers.go`, new)
+`webtyp.com/view` v0.6.63 replaced "list everything, filter in the browser" with **paged lists declared by the
+module and searched on the server**. A module that shows a list with `view.NewCallerLister` or implements
+`view.Lister` makes the changes below. Contract: [page.go](../page.go), [lister.go](../lister.go),
+[view.go](../view.go).
+
+## What changed in view
+
+| Before | Now |
+|---|---|
+| `Lister.List(done func(rows []view.Record, err error))` | `Lister.List(args view.ListArgs, done func(rows []view.Record, err error))` and `Lister.Page() view.Page` |
+| The list operation got no body | It gets `view.ListArgs{Search, After, Limit}` and **must accept it** (otherwise it answers 400 and the screen lists nothing) |
+| `Presenter.Filter(term) []model.Item` (local) | `Presenter.Search(term, done)`, `Presenter.HasMore()`, `Presenter.More(done)` (server) |
+| — | `view.Ops.Page` (`view.Page{First, Size, More}`), `view.All`, `view.DefaultPage`, `view.MaxPage`, `view.Cap` |
+
+## 1. The list operation accepts `view.ListArgs`
+
+Every operation named in `view.Ops.List` declares and decodes `view.ListArgs`, caps the limit, searches on the
+server and continues after the last row shown. Rows come in **ascending id order** (ids are unixid strings of equal
+length, so string order is time order), the same order every call, so `After` continues it.
 
 ```go
-// GetPatient lee un paciente por su id. Ausente u otro tenant ⇒ found=false, err=nil.
-// Ejemplo: name, doc, phone, email, ok, err := m.GetPatient("t1", "p1")
-func (m *Module) GetPatient(tenantID, id string) (name, documentNumber, phone, email string, found bool, err error) {
-	if tenantID == "" || id == "" {
-		return "", "", "", "", false, nil
+reg.Operation(OpListThings, m.opListThings).Requires(model.ResourceOf(&ThingModel), model.Read).Accepts(&view.ListArgs{})
+
+func (m *Module) opListThings(ctx router.Context) {
+	var args view.ListArgs
+	if err := ctx.Decode(&args); err != nil {
+		rpc.WriteError(ctx, ErrCannotRead) // the module's existing "cannot read" error
+		return
 	}
-	p, err := m.getPatient(tenantID, id)
-	if model.KindOf(err) == model.ErrorNotFound {
-		return "", "", "", "", false, nil
-	}
+	rows, err := m.listThings(args.Search, args.After, view.Cap(args.Limit))
 	if err != nil {
-		return "", "", "", "", false, err
+		rpc.WriteError(ctx, err)
+		return
 	}
-	return p.Name, p.Rut, p.Phone, p.Email, true, nil
+	var list ThingList
+	for i := range rows {
+		list = append(list, &rows[i])
+	}
+	_ = ctx.Encode(&list)
 }
 
-// FindPatient busca un paciente por su número de documento (RUT). Ausente ⇒ found=false, err=nil.
-// Ejemplo: id, name, phone, email, ok, err := m.FindPatient("t1", "12.345.678-5")
-func (m *Module) FindPatient(tenantID, documentNumber string) (id, name, phone, email string, found bool, err error) {
-	p, err := m.findByDocument(tenantID, documentNumber)
-	if model.KindOf(err) == model.ErrorNotFound {
-		return "", "", "", "", false, nil
+// listThings: tenant from the module (m.tenantID), never from the request.
+func (m *Module) listThings(search, after string, limit int64) ([]Thing, error) {
+	var t Thing
+	qb := m.db.Query(&t).Where(Thing_.TenantId).Eq(m.tenantID)
+	if search != "" {
+		qb = qb.Where(Thing_.Name).Like("%" + search + "%") // the field marked Item: model.ItemLabel
 	}
-	if err != nil {
-		return "", "", "", "", false, err
+	if after != "" {
+		qb = qb.Where(Thing_.Id).Gt(after)
 	}
-	return p.Id, p.Name, p.Phone, p.Email, true, nil
-}
-
-// CreatePatient crea un paciente activo con RUT y devuelve su id. Documento ya registrado ⇒ ErrRutAlreadyExists.
-// Ejemplo: id, err := m.CreatePatient("t1", newID, "12.345.678-5", "Ana", "+56911223344", "ana@correo.cl")
-func (m *Module) CreatePatient(tenantID, id, documentNumber, name, phone, email string) (string, error) {
-	p, err := m.createPatient(Patient{
-		Id: id, TenantId: tenantID, DocumentType: kinds.DocumentRUT, Rut: documentNumber,
-		Name: name, Phone: phone, Email: email, IsActive: true,
-	})
-	if err != nil {
-		return "", err
-	}
-	return p.Id, nil
+	qb = qb.OrderBy(Thing_.Id).Asc().Limit(int(limit))
+	rows, err := ReadAllThing(qb)
+	…
 }
 ```
 
-`findByDocument` returns `ErrNotFound` (`model.NotFound`) when absent, as `FindByRut` does today (`module.go:231`).
+- **Never use `qb.Or()`**: `orm` does not group OR conditions, so `tenant = X AND a LIKE s OR b LIKE s` would leak
+  rows of other tenants. Search one field (the `model.ItemLabel` one); a module that needs several fields picks the
+  field by the shape of the term (e.g. a valid RUT → the RUT column, compared with `input.NormalizeRUT`).
+- A model without a tenant column drops that `Where`. A model without `Id` orders by its primary key.
+- If the operation already had arguments of its own (filters), those stay in the module's other operations; the
+  view's list operation receives only `view.ListArgs`.
 
-## Stage 3 — deletions
+## 2. The module declares its Page
 
-Delete everything in gate 5. Run `ormc` after editing `model.go`; `langc sync .`, remove keys it reports unused.
+In `view.Ops`:
 
-## Stage 4 — module/ (copy `github.com/veltylabs/staff_manager/module`, rename)
-
-`module/module.go`: `var Module = appkit.Module{Name: "patient_directory", Server: server, Browser: browser}`.
-`module/server.go` (`//go:build !browser`):
 ```go
-func build(d appkit.Deps) (model.ModuleNaming, error) {
-	return patientdirectory.New(d.DB, patientdirectory.Deps{
-		Publisher: d.Events, TenantID: d.TenantID, ValidateRUT: trustedip.ValidateRUT,
-	})
+view.Ops{Module: ModelName, List: OpListThings, Save: OpUpsertThing, Page: view.Page{First: view.All}}
+```
+
+- Small or bounded lists (catalogs, configuration, staff, devices, zones): `view.Page{First: view.All}` (every
+  row up to `view.MaxPage` = 500, as today).
+- Lists that grow without bound (patients, payments, messages, audit): `view.Page{First: 0, Size: 20, More: true}`
+  (nothing until a search) or `view.Page{First: 50, Size: 50, More: true}`. The plan of each repo says which.
+
+## 3. A hand-written Lister
+
+```go
+func (l *thingLister) Page() view.Page { return view.Page{First: view.All} }
+
+func (l *thingLister) List(args view.ListArgs, done func([]view.Record, error)) { … same body, args may be ignored when Page is All … }
+```
+
+## 4. Tests
+
+- Replace every `p.Filter(term)` with `p.Search(term, nil)` and then read `p.Items()`.
+- A test double that implements `view.Lister` gets `Page()` and the new `List(args, done)`.
+- Add `Test<Area>_ListAcceptsListArgs`: call the list operation with `&view.ListArgs{Limit: 1}` → status 200 and
+  exactly 1 row; with `&view.ListArgs{Search: "<label of one seeded row>"}` → that row; with
+  `&view.ListArgs{After: <id of the first row>}` → the first row is not in the result.
+
+
+## Stage 2b — patient search (this repo only)
+
+`listPatients` picks the field by the shape of the term (no `qb.Or()`):
+
+```go
+switch norm, err := input.NormalizeRUT(search); {
+case search == "":
+case err == nil:
+	qb = qb.Where(Patient_.DocumentType).Eq(kinds.DocumentRUT).Where(Patient_.Rut).Eq(norm) // the RUT, however it was written
+case isPhone(search): // 6 or more digits, spaces and + allowed
+	qb = qb.Where(Patient_.Phone).Like("%" + digitsOnly(search) + "%")
+default:
+	qb = qb.Where(Patient_.Name).Like("%" + strings.ToLower(search) + "%")
 }
 ```
-(`trustedip "webtyp.com/auth/trusted_ip"`, as staff_manager.) `module/browser.go` (`//go:build browser`):
-`Screens: func(d appkit.BrowserDeps) []view.Screen { return ui.Screens(d.Caller) }`.
 
-## Stage 5 — tests
+Imported names are lower case; lower-casing the term matches them. Tests `TestListPatients_SearchByRutAnyWayWritten`
+("8.123.456-6" and "08123456-6" find the patient saved as "8123456-6"), `TestListPatients_SearchByName`,
+`TestListPatients_PageOf20ThenMore` (25 patients named "maria …": Limit 20 → 20, After the 20th → 5).
+`ListPatientsArgs` and its `limit`/`offset` are deleted (`grep -rn "ListPatientsArgs" .` → empty); `OpListPatients`
+accepts `view.ListArgs`. The screen opens empty with the placeholder «Busca un paciente por RUT, nombre o teléfono»
+(`view.WithSearchPlaceholder`, English key `Search a patient by RUT, name or phone`, translated in `lang.json`).
 
-Existing tests in `tests/` (external package) that call the now-unexported methods switch to `ImportPatient` to set
-up data, the plain methods to read, or the ops (as `ops_test.go`). Never export a method for a test. New
-`tests/readers_test.go`:
+## Last stage — documentation
 
-| Test | Setup → call | Expected |
-|---|---|---|
-| `TestGetPatient` | `ImportPatient` p1 "Ana", RUT "12.345.678-5" → `GetPatient("t1","p1")` | "Ana", stored RUT, phone, email, `true`, nil |
-| `TestGetPatientMissing` | → `GetPatient("t1","zz")`; p1 → `GetPatient("t2","p1")` | `found == false`, `err == nil` both |
-| `TestFindPatient` | p1 → `FindPatient("t1","12345678-5")` | `"p1"`, `true` |
-| `TestFindPatientMissing` | → `FindPatient("t1","11.111.111-1")` | `found == false`, `err == nil` |
-| `TestCreatePatient` | `CreatePatient("t1","p2","12.345.678-5","Ana","","")` → `FindPatient` | `"p2"` |
-| `TestCreatePatientDuplicate` | p1 has that RUT → `CreatePatient(...,"p3",...)` | `errors.Is(err, ErrRutAlreadyExists)` |
-
-## Stage 6 — docs (Spanish)
-
-`README.md` Step-by-Step: `Modules: []appkit.Module{patientdirectory.Module}` and the three methods; `docs/ARCHITECTURE.md`:
-the six-verb rule, plain values, unexported struct forms; no `LinkPatient`/`ClientExists`.
+README and `docs/ARCHITECTURE.md`: where they describe a list, say it loads as its `view.Page` declares and searches
+on the server. Translate to Spanish any README, docs/* file or code comment this plan touched that is still in English (veltylabs rule).
 
 ## Delivery check
 
-1. `gotest` passes; `langc sync .` → 0 untranslated, 0 reuse warnings.
-2. `grep -rn "LinkPatient\|ClientExists\|link_patient\|FindByRut" --include=*.go --include=*.md --include=*.json .` → empty.
-3. `grep -n "^func (m \*Module) [A-Z]" *.go | grep -v "op\|ModelName\|MountOperations"` lists only `GetPatient`,
-   `FindPatient`, `CreatePatient`, `ImportPatient`.
+```
+gotest
+langc sync .                                   # if the repo has lang.json: 0 untranslated, 0 reuse warnings
+grep -rn "\.Filter(" --include=*.go .           # → empty
+grep -rn "List(done func" --include=*.go .     # → empty
+```
 
-Commit after every stage. Never edit `model_orm.go` by hand; a build error there means the hand-written code is wrong.
-Never run `git reset`, `git restore`, `git checkout -- <file>` or `git stash` on your own work. Stuck 30 minutes: open
-the PR anyway listing what fails. A PR that does not compile, or whose tests could not run, is a failed delivery.
-Environment: `GOPRIVATE=webtyp.com/*,github.com/veltylabs/*`, `GOFLAGS=-mod=mod`, `go mod tidy` before `ormc`.
-If a signature in the published tag differs from what this plan states, stop and name the symbol in the PR; never adapt it by guessing.
-
-## Stages
-
-| Stage | Files | Done when |
-|---|---|---|
-| 1 | `module.go`, `ops.go`, `import.go`, `seed/seed.go` | compiles |
-| 2 | `readers.go` | compiles |
-| 3 | `module.go`, `ops.go`, `model.go`, `model_orm.go` (ormc), `lang.json`, 2 test files deleted | compiles |
-| 4 | `module/module.go`, `module/server.go`, `module/browser.go` | compiles for browser |
-| 5 | `tests/*` | tests pass |
-| 6 | `README.md`, `docs/ARCHITECTURE.md` | done |
+A PR that does not compile, or whose tests could not run, is a failed delivery. Never edit a generated file
+(`model_orm.go`). Commit after every stage; never run `git reset`, `git restore`, `git checkout -- <file>` or
+`git stash` on your own work. Stuck for 30 minutes: open the PR anyway listing what fails.

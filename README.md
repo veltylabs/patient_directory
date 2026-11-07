@@ -17,7 +17,7 @@ Este módulo provee su propio subpaquete UI `ui/`, cargador de datos de prueba `
 
 | Operación | Recurso | Acción | Descripción |
 |---|---|---|---|
-| `list_patients` | `patient` | `Read` | Lista pacientes de un tenant con opciones de `active_only`, `limit`, `offset` |
+| `list_patients` | `patient` | `Read` | Lista paginada de pacientes buscada en el servidor (`view.ListArgs`: búsqueda por RUT/teléfono/nombre, paginación por `after`/`limit`) |
 | `get_patient` | `patient` | `Read` | Obtiene un paciente por su ID dentro de un tenant |
 | `find_patient_by_rut` | `patient` | `Read` | Busca un paciente por RUT dentro de un tenant |
 | `upsert_patient` | `patient` | `Create\|Update` | Crea un nuevo paciente o actualiza uno existente |

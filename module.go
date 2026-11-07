@@ -5,6 +5,7 @@ import (
 	"strings"
 	"webtyp.com/events"
 	"webtyp.com/fmt"
+	"webtyp.com/input"
 	"webtyp.com/model"
 	"webtyp.com/orm"
 	"webtyp.com/storage"
@@ -49,12 +50,6 @@ func New(db *orm.DB, deps Deps) (*Module, error) {
 		validateRUT: deps.ValidateRUT,
 		tenantID:    deps.TenantID,
 	}, nil
-}
-
-type PatientFilter struct {
-	ActiveOnly bool
-	Limit      int64
-	Offset     int64
 }
 
 // checkDocument normalizes and validates p's document by its type. An empty type means RUT (what the form sends
@@ -255,20 +250,49 @@ func (m *Module) findByDocument(tenantID, rut string) (Patient, error) {
 	return Patient{}, ErrNotFound
 }
 
-func (m *Module) listPatients(tenantID string, filter PatientFilter) ([]Patient, error) {
+func isPhone(s string) bool {
+	digits := 0
+	for _, r := range s {
+		if r >= '0' && r <= '9' {
+			digits++
+		} else if r != '+' && r != ' ' && r != '-' && r != '(' && r != ')' {
+			return false
+		}
+	}
+	return digits >= 6
+}
+
+func digitsOnly(s string) string {
+	var b strings.Builder
+	for _, r := range s {
+		if r >= '0' && r <= '9' {
+			b.WriteRune(r)
+		}
+	}
+	return b.String()
+}
+
+func (m *Module) listPatients(tenantID, search, after string, limit int64) ([]Patient, error) {
 	if tenantID == "" {
 		return []Patient{}, nil
 	}
 	var p Patient
 	qb := m.db.Query(&p).Where(Patient_.TenantId).Eq(tenantID)
-	if filter.ActiveOnly {
-		qb = qb.Where(Patient_.IsActive).Eq(true)
+	switch norm, err := input.NormalizeRUT(search); {
+	case search == "":
+	case err == nil:
+		qb = qb.Where(Patient_.DocumentType).Eq(kinds.DocumentRUT).Where(Patient_.Rut).In([]string{norm, strings.ReplaceAll(norm, "-", "")})
+	case isPhone(search):
+		qb = qb.Where(Patient_.Phone).Like("%" + digitsOnly(search) + "%")
+	default:
+		qb = qb.Where(Patient_.Name).Like("%" + strings.ToLower(search) + "%")
 	}
-	if filter.Limit > 0 {
-		qb = qb.Limit(int(filter.Limit))
+	if after != "" {
+		qb = qb.Where(Patient_.Id).Gt(after)
 	}
-	if filter.Offset > 0 {
-		qb = qb.Offset(int(filter.Offset))
+	qb = qb.OrderBy(Patient_.Id).Asc()
+	if limit > 0 {
+		qb = qb.Limit(int(limit))
 	}
 
 	results, err := ReadAllPatient(qb)

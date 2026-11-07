@@ -38,16 +38,6 @@ var PatientModel = model.Definition{
 	},
 }
 
-var ListPatientsArgsModel = model.Definition{
-	Name: "list_patients_args",
-	Fields: model.Fields{
-		{Name: "tenant_id", Type: model.Text()},
-		{Name: "active_only", Type: model.Bool()},
-		{Name: "limit", Type: model.Int()},
-		{Name: "offset", Type: model.Int()},
-	},
-}
-
 var GetPatientArgsModel = model.Definition{
 	Name: "get_patient_args",
 	Fields: model.Fields{

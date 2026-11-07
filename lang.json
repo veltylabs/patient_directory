@@ -17,6 +17,7 @@
     "Phone": ["Teléfono", "电话", "फ़ोन", "هاتف", "Telefone", "Téléphone", "Telefon", "Телефон"],
     "RUT": ["RUT", "", "", "", "", "", "", ""],
     "Rut": ["RUT", "", "", "", "", "", "", ""],
+    "Search a patient by RUT, name or phone": ["Busca un paciente por RUT, nombre o teléfono", "", "", "", "", "", "", ""],
     "Sex": ["Sexo", "", "", "", "", "", "", ""],
     "To verify": ["Por verificar", "", "", "", "", "", "", ""],
     "Two-letter country code of the passport or id card, e.g. VE, PE, HT. Empty for a Chilean RUT.": ["Código de país de dos letras del pasaporte o cédula, ej. VE, PE, HT. Vacío para un RUT chileno.", "", "", "", "", "", "", ""],

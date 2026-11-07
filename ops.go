@@ -24,7 +24,7 @@ const ModelName = "patient_directory"
 func (m *Module) ModelName() string { return ModelName }
 
 func (m *Module) MountOperations(reg router.OperationRegistry) {
-	reg.Operation(OpListPatients, m.opListPatients).Requires(model.ResourceOf(&PatientModel), model.Read).Accepts(&ListPatientsArgs{})
+	reg.Operation(OpListPatients, m.opListPatients).Requires(model.ResourceOf(&PatientModel), model.Read).Accepts(&view.ListArgs{})
 	reg.Operation(OpGetPatient, m.opGetPatient).Requires(model.ResourceOf(&PatientModel), model.Read).Accepts(&GetPatientArgs{})
 	reg.Operation(OpFindPatientByRut, m.opFindPatientByRut).Requires(model.ResourceOf(&PatientModel), model.Read).Accepts(&FindPatientByRutArgs{})
 	view.MountSave(reg, OpUpsertPatient, func(p *Patient) error {
@@ -57,20 +57,12 @@ func (m *Module) MountOperations(reg router.OperationRegistry) {
 var _ router.OperationModule = (*Module)(nil)
 
 func (m *Module) opListPatients(ctx router.Context) {
-	var args ListPatientsArgs
+	var args view.ListArgs
 	if err := ctx.Decode(&args); err != nil {
 		rpc.WriteError(ctx, ErrCannotRead)
 		return
 	}
-	tenantID := args.TenantId
-	if tenantID == "" {
-		tenantID = m.tenantID
-	}
-	patients, err := m.listPatients(tenantID, PatientFilter{
-		ActiveOnly: args.ActiveOnly,
-		Limit:      args.Limit,
-		Offset:     args.Offset,
-	})
+	patients, err := m.listPatients(m.tenantID, args.Search, args.After, view.Cap(args.Limit))
 	if err != nil {
 		rpc.WriteError(ctx, err)
 		return

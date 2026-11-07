@@ -138,48 +138,6 @@ func ReadAllPatient(qb *orm.QB) (PatientList, error) {
 	return results, err
 }
 
-type ListPatientsArgs struct {
-	TenantId string
-	ActiveOnly bool
-	Limit int64
-	Offset int64
-}
-
-func (m *ListPatientsArgs) ModelName() string { return "list_patients_args" }
-
-func (m *ListPatientsArgs) Schema() []model.Field { return ListPatientsArgsModel.Fields }
-
-func (m *ListPatientsArgs) Pointers() []any { return []any{&m.TenantId, &m.ActiveOnly, &m.Limit, &m.Offset} }
-
-func (m *ListPatientsArgs) IsNil() bool { return m == nil }
-
-func (m *ListPatientsArgs) EncodeFields(w model.FieldWriter) {
-	w.String("tenant_id", m.TenantId)
-	w.Bool("active_only", m.ActiveOnly)
-	w.Int("limit", m.Limit)
-	w.Int("offset", m.Offset)
-}
-
-func (m *ListPatientsArgs) DecodeFields(r model.FieldReader) {
-	if v, ok := r.String("tenant_id"); ok { m.TenantId = v }
-	if v, ok := r.Bool("active_only"); ok { m.ActiveOnly = v }
-	if v, ok := r.Int("limit"); ok { m.Limit = v }
-	if v, ok := r.Int("offset"); ok { m.Offset = v }
-}
-
-type ListPatientsArgsList []*ListPatientsArgs
-
-func (s *ListPatientsArgsList) Len() int             { return len(*s) }
-func (s *ListPatientsArgsList) At(i int) model.Fielder { return (*s)[i] }
-func (s *ListPatientsArgsList) Append() model.Fielder  { v := &ListPatientsArgs{}; *s = append(*s, v); return v }
-func (s *ListPatientsArgsList) IsNil() bool          { return s == nil }
-func (s *ListPatientsArgsList) EncodeFields(_ model.FieldWriter) {}
-func (s *ListPatientsArgsList) DecodeFields(_ model.FieldReader) {}
-
-func (m *ListPatientsArgs) Validate(action byte) error {
-	return model.ValidateFields(action, m)
-}
-
 type GetPatientArgs struct {
 	TenantId string
 	Id string
