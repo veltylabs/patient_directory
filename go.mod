@@ -42,7 +42,7 @@ require (
 	webtyp.com/base64 v0.0.6 // indirect
 	webtyp.com/calendar v0.1.0 // indirect
 	webtyp.com/color v0.1.2 // indirect
-	webtyp.com/components v0.8.57 // indirect
+	webtyp.com/components v0.8.63 // indirect
 	webtyp.com/context v0.0.23 // indirect
 	webtyp.com/css v0.4.31 // indirect
 	webtyp.com/dbus v0.1.1 // indirect
@@ -55,7 +55,7 @@ require (
 	webtyp.com/form v0.4.61 // indirect
 	webtyp.com/icons v0.0.38 // indirect
 	webtyp.com/keyring v0.2.9 // indirect
-	webtyp.com/layout v0.3.99 // indirect
+	webtyp.com/layout v0.3.108 // indirect
 	webtyp.com/mcp v0.3.20 // indirect
 	webtyp.com/msgtype v0.1.0 // indirect
 	webtyp.com/pwa v0.2.13 // indirect
