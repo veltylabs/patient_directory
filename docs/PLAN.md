@@ -2,6 +2,8 @@
 PLAN: "feat!: paged lists searched on the server (view v0.6.64)"
 EXECUTOR: jules
 REVIEWER: none
+STATUS: running
+SESSION: 4676144358058285938
 ---
 
 > Read AGENTS.md at the repo root before any change.
