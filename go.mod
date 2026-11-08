@@ -12,7 +12,7 @@ require (
 	webtyp.com/html v0.0.30
 	webtyp.com/input v0.0.36
 	webtyp.com/json v0.5.40
-	webtyp.com/lang v0.1.14
+	webtyp.com/lang v0.1.16
 	webtyp.com/model v0.2.15
 	webtyp.com/orm v0.12.26
 	webtyp.com/router v0.4.17
@@ -59,7 +59,7 @@ require (
 	webtyp.com/mcp v0.3.20 // indirect
 	webtyp.com/msgtype v0.1.0 // indirect
 	webtyp.com/pwa v0.2.13 // indirect
-	webtyp.com/server v0.2.115 // indirect
+	webtyp.com/server v0.2.119 // indirect
 	webtyp.com/user v0.3.14 // indirect
 	webtyp.com/webauthn v0.1.16 // indirect
 	webtyp.com/widget v0.6.46 // indirect
