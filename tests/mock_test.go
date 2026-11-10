@@ -2,15 +2,16 @@ package tests
 
 import (
 	"webtyp.com/model"
+	"webtyp.com/router"
 )
 
 type mockCaller struct {
-	lastOp   string
+	lastOp   router.Operation
 	lastArgs model.Encodable
-	onCall   func(op string, args model.Encodable, into model.Decodable) error
+	onCall   func(op router.Operation, args model.Encodable, into model.Decodable) error
 }
 
-func (m *mockCaller) Call(op string, args model.Encodable, into model.Decodable, done func(err error)) {
+func (m *mockCaller) Call(op router.Operation, args model.Encodable, into model.Decodable, done func(err error)) {
 	m.lastOp = op
 	m.lastArgs = args
 	if m.onCall != nil {
@@ -21,7 +22,7 @@ func (m *mockCaller) Call(op string, args model.Encodable, into model.Decodable,
 	}
 }
 
-func (m *mockCaller) Dispatch(op string, args model.Encodable) {
+func (m *mockCaller) Dispatch(op router.Operation, args model.Encodable) {
 	m.lastOp = op
 	m.lastArgs = args
 }

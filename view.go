@@ -18,18 +18,15 @@ const (
 // renderizador lo dibuja.
 //
 // Ops NO lleva Delete: view.NewCallerLister implementa exactamente las
-// capacidades de escritura cuyos nombres de op no están vacíos, por lo que un
-// renderizador no dibuja controles de eliminación. Un paciente se desactiva,
+// capacidades de escritura gobernadas por PatientModel.Allow. Un paciente se desactiva,
 // nunca se elimina (consulte AGENTS.md).
 func NewView(caller router.Caller, opts ...view.Option) view.Presenter {
-	b := view.NewCallerLister(view.NewRecords().Caller(caller),
+	b := view.NewCallerLister(caller,
 		view.Ops{
 			Module: ModelName,
-			List:   OpListPatients,
-			Save:   OpUpsertPatient,
 			Page:   view.Page{First: 0, Size: 20, More: true},
 		},
-		func() model.ModelSlice { return &PatientList{} })
+		func() model.TableSlice { return &PatientList{} })
 	allOpts := append([]view.Option{
 		view.WithTitle(titlePatients),
 		view.WithSearchPlaceholder(searchPlaceholderPatients),

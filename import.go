@@ -1,59 +1,62 @@
 package patientdirectory
 
 import (
+	"webtyp.com/crud"
 	"webtyp.com/model"
-	"webtyp.com/orm"
 	"webtyp.com/time"
 )
 
-// ImportPatient stores a patient from a previous system with the id it had there: it creates it, or updates every
-// field when that id already exists, so importing twice leaves the same row. It validates exactly like
-// CreatePatient (name, document rules, sex, unique document) and publishes no event.
-//
-// Example: p, err := dir.ImportPatient(Patient{Id: "1640011384447734400", TenantId: t, DocumentType: kinds.DocumentRUT, Rut: "12345678-5", Name: "Ana"})
+var importUpdateFields = []string{
+	Patient_.Rut,
+	Patient_.DocumentType,
+	Patient_.DocumentCountry,
+	Patient_.Name,
+	Patient_.Birthdate,
+	Patient_.BirthdateEstimated,
+	Patient_.Sex,
+	Patient_.Phone,
+	Patient_.Email,
+	Patient_.Address,
+	Patient_.Notes,
+	Patient_.IsActive,
+	Patient_.UpdatedAt,
+}
+
+// ImportPatient guarda un paciente de un sistema anterior con el ID que tenía allí:
+// lo crea, o actualiza todos los campos si ese ID ya existe, de modo que importar
+// dos veces deja la misma fila. Valida exactamente como CreatePatient y no publica eventos.
 func (m *Module) ImportPatient(p Patient) (Patient, error) {
 	if p.Id == "" {
-		return Patient{}, &model.FieldError{Field: "id", Err: ErrIdRequired}
+		return Patient{}, &model.FieldError{Field: Patient_.Id, Err: ErrIdRequired}
 	}
-	if p.TenantId == "" {
-		return Patient{}, &model.FieldError{Field: "tenant_id", Err: ErrTenantRequired}
+	if p.TenantId != "" && p.TenantId != m.tenantID {
+		return Patient{}, ErrIdTaken
 	}
-	if p.Name == "" {
-		return Patient{}, &model.FieldError{Field: "name", Err: ErrNameRequired}
-	}
-
+	p.TenantId = m.tenantID
 	if err := m.checkDocument(&p); err != nil {
 		return Patient{}, err
 	}
-
-	if p.Sex != "" && p.Sex != "m" && p.Sex != "f" {
-		return Patient{}, &model.FieldError{Field: "sex", Err: ErrSex}
-	}
-
-	if err := m.findSameDocument(p); err != nil {
+	if err := model.ValidateFields(model.ActionCreate, &p); err != nil {
 		return Patient{}, err
 	}
-
-	var existing Patient
-	qb := m.db.Query(&existing).Where(Patient_.Id).Eq(p.Id)
-	_, err := ReadOnePatient(qb, &existing)
-
 	p.UpdatedAt = time.NowNano()
 
-	if err == nil {
-		if existing.TenantId != p.TenantId {
-			return Patient{}, ErrIdTaken
+	err := m.store.Atomic(func(tx crud.Tx) error {
+		if err := m.sameDocument(tx, &p); err != nil {
+			return err
 		}
-		if err := m.db.Update(&p, orm.Eq(Patient_.Id, p.Id), orm.Eq(Patient_.TenantId, p.TenantId)); err != nil {
-			return Patient{}, err
+		var existing Patient
+		err := tx.ReadOne(&existing, p.Id)
+		if err == nil {
+			return tx.UpdateFields(&p, p.Id, importUpdateFields)
 		}
-		return p, nil
-	} else if orm.IsNotFound(err) {
-		if err := m.db.Create(&p); err != nil {
-			return Patient{}, err
+		if model.KindOf(err) == model.ErrorNotFound {
+			return tx.Create(&p)
 		}
-		return p, nil
-	} else {
+		return err
+	})
+	if err != nil {
 		return Patient{}, err
 	}
+	return p, nil
 }

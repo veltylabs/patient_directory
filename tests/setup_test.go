@@ -27,23 +27,29 @@ func fakeValidateRUT(rut string) (string, error) {
 	cleaned = strings.ReplaceAll(cleaned, "-", "")
 	cleaned = strings.ToUpper(cleaned)
 	if cleaned == "" {
-		return "", patientdirectory.ErrRutRequired
+		return "", patientdirectory.ErrDocumentNumber
 	}
 	return cleaned, nil
 }
 
 func setupModule() (*patientdirectory.Module, *fakePublisher, error) {
+	return setupModuleWithTenant("test-tenant")
+}
+
+func setupModuleWithTenant(tenantID string) (*patientdirectory.Module, *fakePublisher, error) {
 	conn := mem.New()
 	db := orm.New(conn)
+	return setupModuleWithTenantAndDB(tenantID, db)
+}
 
+func setupModuleWithTenantAndDB(tenantID string, db *orm.DB) (*patientdirectory.Module, *fakePublisher, error) {
 	pub := &fakePublisher{}
-
 	deps := patientdirectory.Deps{
 		Publisher:   pub,
 		ValidateRUT: fakeValidateRUT,
-		TenantID:    "test-tenant",
+		TenantID:    tenantID,
+		IDs:         &testIDGen{},
 	}
-
 	m, err := patientdirectory.New(db, deps)
 	if err != nil {
 		return nil, nil, err

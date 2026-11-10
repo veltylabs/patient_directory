@@ -1,84 +1,65 @@
-# Arquitectura y Decisiones de Diseño
+# Arquitectura de `patient_directory`
 
-## Límite del Dominio
+## 1. Visión general en un minuto
 
-`patient_directory` es propietario de la **identidad** y **datos de contacto** del paciente:
-- Identidad: ID interno, identificador nacional (RUT), tipo de documento, país emisor, nombre completo, sexo, fecha de nacimiento.
-- Contacto: número de teléfono, correo electrónico, dirección física.
-- Estado: indicador de activo (`is_active`), marca de tiempo de actualización (`updated_at`).
+`patient_directory` administra la identidad y datos de contacto de las personas atendidas en un establecimiento de salud. El aislamiento entre clínicas es estricto por tenant: una misma persona o documento puede existir en clínicas independientes sin interferir entre sí.
 
-Explícitamente **no** es propietario de:
-- Atenciones clínicas, diagnósticos, fichas ni recetas (propiedad de `clinical_encounter`).
-- Citas médicas ni estado de agenda (propiedad de `appointment_booking`).
-- Cuentas de usuarios de personal o profesionales de la salud (propiedad de `staff_manager`).
+El diseño desacopla la persistencia de las reglas clínicas:
+- La **persistencia** (transacciones atómicas, filtrado por tenant, lectura de campos, paginación e idempotencia) está delegada al framework mediante [`webtyp.com/crud`](https://github.com/webtyp/crud) y [`orm.TenantStore`](https://github.com/webtyp/orm), gobernados por `PatientModel.Allow` (`Create | Read | Update`).
+- Las **reglas de negocio** residen en tres archivos `rule_patient_*.go` (los crea `definitionc` una vez): crear (`Create`: `checkDocument` y `sameDocument`), actualizar (`Update`) y buscar (`Search`). Los eventos no los escribe el módulo: `crud` los publica tras el commit.
 
-## Regla de los Seis Verbos e Integración entre Módulos
+Los datos clínicos (fichas, diagnósticos, atenciones) pertenecen exclusivamente a `clinical_encounter`.
 
-Siguiendo la regla de diseño del ecosistema (**module-layout** «Six verbs, one name per job»), este módulo no exporta tipos complejos o estructuras propias a otros módulos. 
+## 2. Piezas y estructura
 
-Los métodos exportados para interoperabilidad retornan y reciben únicamente tipos planos:
-- `GetPatient(tenantID, id string) (name, documentNumber, phone, email string, found bool, err error)`
-- `FindPatient(tenantID, documentNumber string) (id, name, phone, email string, found bool, err error)`
-- `CreatePatient(tenantID, id, documentNumber, name, phone, email string) (patientID string, err error)`
-- `ImportPatient(p Patient) (Patient, error)` (reservado para migraciones y carga inicial)
-
-Las formas que manejan la estructura interna `Patient` (`getPatient`, `createPatient`, `updatePatient`, `listPatients`, `deactivatePatient`, `findByDocument`) son no exportadas y de uso exclusivo interno y para las operaciones del router (`ops.go`).
-
-Cualquier módulo consumidor (`appointment_booking`, `clinical_encounter`, etc.) declara en su propio `interfaces.go` únicamente las firmas de los métodos planos que necesita, satisfaciéndose estructuralmente sin adaptadores y con cero dependencias cruzadas en `go.mod`.
-
-## Integración con Appkit
-
-El submódulo `module/` exporta el valor listo para `App.Modules`:
-
-```go
-package config
-
-import (
-	patientmodule "github.com/veltylabs/patient_directory/module"
-	"webtyp.com/appkit"
-)
-
-var App = appkit.App{
-	Modules: []appkit.Module{
-		patientmodule.Module,
-	},
-}
-```
-
-## Decisiones Arquitectónicas Principales
-
-1. **Identidad y Alcance por Tenant:**
-   - La unicidad de documento está delimitada por tenant: el mismo documento puede existir en diferentes clínicas de forma independiente.
-
-2. **Control de Unicidad en Capa de Aplicación:**
-   - `patient_directory` verifica la existencia del documento en `createPatient` y `updatePatient` retornando `ErrRutAlreadyExists`. `PatientModel` no lleva la marca `Unique: true` a nivel de columna para permitir multitenancy limpio.
-
-3. **Desactivación en lugar de Eliminación:**
-   - Los pacientes nunca se eliminan físicamente. `deactivatePatient` establece `is_active = false`.
-   - Los registros históricos y reservas que referencian a un ID de paciente siempre deben poder resolverse.
-
-4. **Validación de RUT Inyectada:**
-   - La función `Deps.ValidateRUT` se inyecta en `patientdirectory.New`.
-   - El módulo no depende de ninguna librería específica de RUT ni implementa algoritmos de dígito verificador propios.
-
-## Documento de identidad
-
-El paciente se identifica por su **id interno**, no por un documento: muchos pacientes extranjeros no tienen RUT, a
-veces solo el pasaporte de su país, y a veces nada a mano. Exigir el RUT frenaba la atención.
-
-| `document_type` | Qué es | Validación |
+| Archivo / Componente | Responsabilidad | Propietario |
 |---|---|---|
-| `rut` (por defecto) | RUT chileno | dígito verificador; se normaliza |
-| `passport` | pasaporte de cualquier país (OACI 9303: hasta 9 letras y dígitos) | número obligatorio; se guarda en mayúsculas |
-| `foreign_id` | cédula de identidad de otro país | número obligatorio; se guarda en mayúsculas |
-| `none` | sin documento a mano | número y país vacíos |
-| `unverified` | ingresado pero inválido | se guarda tal cual; recepción lo corrige |
+| `definition.go` | Declaración del módulo: `Definition`, `PatientModel` con `Allow` y `Rules`, y las constantes de errores de dominio. | Dominio |
+| `definition_gen.go` | Generado por `definitionc`: tipos, esquema y `MountOperations`/`Definition()` del módulo. No se edita. | Generado |
+| `rule_patient_create.go`, `rule_patient_update.go`, `rule_patient_search.go` | Reglas de crear (validación y unicidad de documento por clínica), actualizar y buscar. | Dominio |
+| `store.go` | `StorePatient()`: el almacén de pacientes sellado por tenant. | Módulo |
+| `module.go` | Constructor `New`, inyección de dependencias (`TenantID`, `IDs`, `Publisher`, `ValidateRUT`) y creación de `TenantStore`. | Módulo |
+| `readers.go` | Lectores de interoperabilidad entre módulos con tipos planos (`GetPatient`, `FindPatient`, `CreatePatient`). | Integración |
+| `import.go` | Carga e importación idempotente de registros históricos (`ImportPatient`). | Dominio |
+| `view.go` | Configuración de vistas paginadas en el navegador mediante `view.NewCallerLister`. | UI Browser |
+| `migrate/migrate.go` | Definición de pasos DDL y migración del esquema en la base de datos. | Almacenamiento |
+| `seed/demo.go` | Datos iniciales para demostraciones locales y pruebas aisladas en memoria. | Herramientas |
 
-No se repite la combinación (tipo, país, número) dentro de un tenant, y solo cuando hay número y el tipo no es
-`unverified`: dos pacientes sin documento pueden convivir. Es el modelo de HL7 FHIR (`Patient.identifier` =
-{tipo, emisor, número}).
+## 3. Flujos paso a paso
 
-### ¿Por qué el teléfono no es un identificador?
+### Registro de paciente nuevo
 
-Una familia comparte el número, un menor usa el de su madre y la gente cambia de número: si fuera único, rechazaría a
-pacientes reales. Sirve para **buscar**, junto con el nombre y la fecha de nacimiento.
+Narra la creación validada y su notificación atómica. Diagrama detallado en [docs/diagrams/patient_flow.md](diagrams/patient_flow.md).
+
+- **Camino exitoso:**
+  1. El cliente invoca `patient_directory.patient.create` (`POST`), o un módulo llama a `CreatePatient`.
+  2. `crud` valida la conformidad del esquema y campos no nulos.
+  3. La regla `Create` normaliza el RUT o valida pasaporte/cédula extranjera.
+  4. `sameDocument` comprueba en la base de datos que el documento no esté tomado en la misma clínica.
+  5. `crud` inserta el registro, asigna ID generado y marcas de tiempo del servidor.
+  6. `crud` publica `patient_directory.patient.created` (cuerpo `*crud.Change`) tras el commit.
+- **Camino de fallo:**
+  - Si el documento tiene formato inválido, retorna inmediatamente `model.FieldError` (400).
+  - Si el documento ya existe en el tenant, retorna `ErrRutAlreadyExists` (409) y no se almacena fila alguna.
+
+### Modificación y desactivación de paciente
+
+- **Camino exitoso:**
+  1. El cliente invoca `patient_directory.patient.update` (`PATCH`) enviando los campos modificados (por ejemplo `["phone"]` o `["is_active"]`).
+  2. La regla `Update` solo revalida el documento si la modificación altera campos de identidad (`rut`, `document_type`, `document_country`).
+  3. `crud` publica siempre `patient_directory.patient.updated`; si se desactivó (`is_active = false`), el `Fields` del `*crud.Change` incluye `is_active`.
+- **Camino de fallo:**
+  - Si se intenta modificar un campo exclusivo del servidor (`ServerOnly`, como `tenant_id`), la llamada es rechazada antes de tocar la base de datos.
+
+## 4. Contratos y límites de seguridad
+
+1. **Aislamiento Multitenant Absoluto:**
+   - Ninguna consulta ni mutación puede omitir el `tenant_id`. [`orm.TenantStore`](https://github.com/webtyp/orm) inyecta de forma forzosa la condición de tenant en cada sentencia generada.
+   - Los campos `tenant_id` y `updated_at` están marcados como `ServerOnly: true`: cualquier valor enviado por el cliente es descartado o rechazado.
+
+2. **Sin Eliminación Física:**
+   - La operación de borrado físico (`model.Delete`) está expresamente deshabilitada en el esquema.
+   - Los pacientes solo se desactivan mediante `is_active = false`, preservando la integridad referencial de atenciones pasadas.
+
+3. **Interoperabilidad con Tipos Planos:**
+   - Los lectores de integración (`readers.go`) intercambian tipos escalares de Go (`string`, `bool`, `error`), impidiendo acoplamientos rígidos entre módulos del ecosistema.

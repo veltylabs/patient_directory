@@ -20,7 +20,7 @@ func Load(m *patientdirectory.Module, tenantID string) (Data, error) {
 			Birthdate: "1980-05-12",
 			Phone:     "+56911111111",
 			Email:     "juan.perez@example.cl",
-			Address:   "Chillán",
+			Address:   "Chillan",
 			IsActive:  true,
 		},
 		{
@@ -31,7 +31,7 @@ func Load(m *patientdirectory.Module, tenantID string) (Data, error) {
 			Birthdate: "1992-11-03",
 			Phone:     "+56922222222",
 			Email:     "maria.gonzalez@example.cl",
-			Address:   "Chillán",
+			Address:   "Chillan",
 			IsActive:  true,
 		},
 		{

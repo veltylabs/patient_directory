@@ -3,25 +3,21 @@ module github.com/veltylabs/patient_directory
 go 1.26.8
 
 require (
-	webtyp.com/appkit v0.2.18
-	webtyp.com/auth v0.0.111
-	webtyp.com/ddl v0.0.46
-	webtyp.com/dom v0.13.29
-	webtyp.com/events v0.1.7
+	webtyp.com/appkit v0.2.33
+	webtyp.com/crud v0.0.10
+	webtyp.com/ddl v0.0.49
+	webtyp.com/events v0.1.8
 	webtyp.com/fmt v1.0.0
-	webtyp.com/html v0.0.30
 	webtyp.com/input v0.0.36
-	webtyp.com/json v0.5.40
 	webtyp.com/lang v0.1.16
-	webtyp.com/model v0.2.15
-	webtyp.com/orm v0.12.26
-	webtyp.com/router v0.4.17
-	webtyp.com/rpc v0.2.15
-	webtyp.com/storage v0.1.18
+	webtyp.com/model v0.2.18
+	webtyp.com/orm v0.12.31
+	webtyp.com/router v0.4.21
+	webtyp.com/storage v0.2.1
 	webtyp.com/svg v0.3.33
 	webtyp.com/time v0.6.4
 	webtyp.com/unixid v0.3.1
-	webtyp.com/view v0.6.65
+	webtyp.com/view v0.6.72
 )
 
 require (
@@ -41,26 +37,24 @@ require (
 	webtyp.com/await v0.1.2 // indirect
 	webtyp.com/base64 v0.0.6 // indirect
 	webtyp.com/calendar v0.1.0 // indirect
-	webtyp.com/color v0.1.2 // indirect
-	webtyp.com/components v0.8.63 // indirect
 	webtyp.com/context v0.0.23 // indirect
-	webtyp.com/css v0.4.31 // indirect
 	webtyp.com/dbus v0.1.1 // indirect
+	webtyp.com/definitioncheck v0.0.3 // indirect
+	webtyp.com/dom v0.13.29 // indirect
 	webtyp.com/env v0.1.3 // indirect
-	webtyp.com/erd v0.0.16 // indirect
 	webtyp.com/escape v0.1.0 // indirect
-	webtyp.com/fetch v0.1.29 // indirect
+	webtyp.com/fetch v0.1.30 // indirect
 	webtyp.com/filepath v0.1.0 // indirect
-	webtyp.com/font v0.0.5 // indirect
-	webtyp.com/form v0.4.61 // indirect
-	webtyp.com/icons v0.0.38 // indirect
+	webtyp.com/json v0.5.40 // indirect
 	webtyp.com/keyring v0.2.9 // indirect
-	webtyp.com/layout v0.3.108 // indirect
-	webtyp.com/mcp v0.3.20 // indirect
+	webtyp.com/mcp v0.3.25 // indirect
 	webtyp.com/msgtype v0.1.0 // indirect
 	webtyp.com/pwa v0.2.13 // indirect
-	webtyp.com/server v0.2.119 // indirect
+	webtyp.com/rbac v0.0.37 // indirect
+	webtyp.com/rpc v0.2.21 // indirect
+	webtyp.com/server v0.2.120 // indirect
 	webtyp.com/user v0.3.14 // indirect
 	webtyp.com/webauthn v0.1.16 // indirect
-	webtyp.com/widget v0.6.46 // indirect
 )
+
+replace webtyp.com/crud => /home/cesar/Dev/Project/webtyp/crud

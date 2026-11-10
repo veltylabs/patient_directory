@@ -8,12 +8,12 @@ import (
 )
 
 func TestImportPatientCreatesThenUpdates(t *testing.T) {
-	m, pub, _ := setupModule()
+	m, pub, _ := setupModuleWithTenant("t")
 
 	p := patientdirectory.Patient{
 		Id:           "1",
 		TenantId:     "t",
-		Name:         "N1",
+		Name:         "Ana 1",
 		DocumentType: kinds.DocumentRUT,
 		Rut:          "1",
 	}
@@ -22,17 +22,17 @@ func TestImportPatientCreatesThenUpdates(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if p1.Name != "N1" {
-		t.Errorf("expected N1, got %s", p1.Name)
+	if p1.Name != "Ana 1" {
+		t.Errorf("expected Ana 1, got %s", p1.Name)
 	}
 
-	p.Name = "N2"
+	p.Name = "Ana 2"
 	p2, err := m.ImportPatient(p)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if p2.Name != "N2" {
-		t.Errorf("expected N2, got %s", p2.Name)
+	if p2.Name != "Ana 2" {
+		t.Errorf("expected Ana 2, got %s", p2.Name)
 	}
 
 	if len(pub.published) != 0 {
@@ -41,12 +41,12 @@ func TestImportPatientCreatesThenUpdates(t *testing.T) {
 }
 
 func TestImportPatientUnverified(t *testing.T) {
-	m, pub, _ := setupModule()
+	m, pub, _ := setupModuleWithTenant("t")
 
 	p, err := m.ImportPatient(patientdirectory.Patient{
 		Id:           "1",
 		TenantId:     "t",
-		Name:         "N",
+		Name:         "Ana",
 		DocumentType: kinds.DocumentUnverified,
 		Rut:          "12345678-0",
 	})
@@ -60,8 +60,4 @@ func TestImportPatientUnverified(t *testing.T) {
 	if len(pub.published) != 0 {
 		t.Errorf("expected 0 events, got %d", len(pub.published))
 	}
-}
-
-func TestImportPublishesNothing(t *testing.T) {
-	// covered by TestImportPatientCreatesThenUpdates
 }

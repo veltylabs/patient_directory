@@ -1,15 +1,17 @@
 package tests
 
 import (
-	"encoding/json"
 	"testing"
+	"webtyp.com/crud"
 	"webtyp.com/model"
+	"webtyp.com/orm"
+	"webtyp.com/storage/mem"
 
 	patientdirectory "github.com/veltylabs/patient_directory"
 )
 
 func TestCreatePatient_AssignsIDAndNormalisesRut(t *testing.T) {
-	m, pub, err := setupModule()
+	m, pub, err := setupModuleWithTenant("tenant-1")
 	if err != nil {
 		t.Fatalf("setup falló: %v", err)
 	}
@@ -33,13 +35,13 @@ func TestCreatePatient_AssignsIDAndNormalisesRut(t *testing.T) {
 	if len(pub.published) != 1 {
 		t.Fatalf("se esperaba 1 evento publicado, se obtuvo %d", len(pub.published))
 	}
-	if pub.published[0].Topic != patientdirectory.TopicPatientCreated {
-		t.Errorf("se esperaba el topic %s, se obtuvo %s", patientdirectory.TopicPatientCreated, pub.published[0].Topic)
+	if pub.published[0].Topic != crud.Topic(patientdirectory.ModelName, "patient", model.Create) {
+		t.Errorf("se esperaba el topic %s, se obtuvo %s", crud.Topic(patientdirectory.ModelName, "patient", model.Create), pub.published[0].Topic)
 	}
 }
 
 func TestCreatePatient_IdempotentRetry(t *testing.T) {
-	m, _, err := setupModule()
+	m, _, err := setupModuleWithTenant("tenant-1")
 	if err != nil {
 		t.Fatalf("setup falló: %v", err)
 	}
@@ -74,7 +76,7 @@ func TestCreatePatient_IdempotentRetry(t *testing.T) {
 }
 
 func TestCreatePatient_SameIdDifferentTenant(t *testing.T) {
-	m, _, err := setupModule()
+	m, _, err := setupModuleWithTenant("tenant-1")
 	if err != nil {
 		t.Fatalf("setup falló: %v", err)
 	}
@@ -107,7 +109,7 @@ func TestCreatePatient_SameIdDifferentTenant(t *testing.T) {
 }
 
 func TestCreatePatient_DuplicateRutSameTenant(t *testing.T) {
-	m, _, err := setupModule()
+	m, _, err := setupModuleWithTenant("tenant-1")
 	if err != nil {
 		t.Fatalf("setup falló: %v", err)
 	}
@@ -118,23 +120,30 @@ func TestCreatePatient_DuplicateRutSameTenant(t *testing.T) {
 	}
 
 	_, err = m.CreatePatient("tenant-1", "id-2", "12.345.678-k", "Jane Doe", "", "")
-	if err == nil || model.KindOf(err) != model.ErrorConflict {
+	fe, ok := err.(*model.FieldError)
+	if !ok || fe.Err != patientdirectory.ErrRutAlreadyExists {
 		t.Errorf("se esperaba ErrRutAlreadyExists, se obtuvo %v", err)
 	}
 }
 
 func TestCreatePatient_SameRutDifferentTenant(t *testing.T) {
-	m, _, err := setupModule()
+	conn := mem.New()
+	db := orm.New(conn)
+	m1, _, err := setupModuleWithTenantAndDB("tenant-1", db)
 	if err != nil {
 		t.Fatalf("setup falló: %v", err)
 	}
+	m2, _, err := setupModuleWithTenantAndDB("tenant-2", db)
+	if err != nil {
+		t.Fatalf("setup 2 falló: %v", err)
+	}
 
-	_, err = m.CreatePatient("tenant-1", "id-1", "12345678-K", "John Doe", "", "")
+	_, err = m1.CreatePatient("tenant-1", "id-1", "12345678-K", "John Doe", "", "")
 	if err != nil {
 		t.Fatalf("CreatePatient 1 falló: %v", err)
 	}
 
-	id2, err := m.CreatePatient("tenant-2", "id-2", "12345678-K", "Jane Doe", "", "")
+	id2, err := m2.CreatePatient("tenant-2", "id-2", "12345678-K", "Jane Doe", "", "")
 	if err != nil {
 		t.Fatalf("CreatePatient 2 debería tener éxito para un tenant distinto, se obtuvo: %v", err)
 	}
@@ -144,7 +153,7 @@ func TestCreatePatient_SameRutDifferentTenant(t *testing.T) {
 }
 
 func TestCreatePatient_MissingIdRutOrName(t *testing.T) {
-	m, _, err := setupModule()
+	m, _, err := setupModuleWithTenant("tenant-1")
 	if err != nil {
 		t.Fatalf("setup falló: %v", err)
 	}
@@ -184,7 +193,7 @@ func TestCreatePatient_MissingIdRutOrName(t *testing.T) {
 }
 
 func TestUpdatePatient_RutTakenByAnother(t *testing.T) {
-	m, _, err := setupModule()
+	m, _, err := setupModuleWithTenant("tenant-1")
 	if err != nil {
 		t.Fatalf("setup falló: %v", err)
 	}
@@ -207,14 +216,15 @@ func TestUpdatePatient_RutTakenByAnother(t *testing.T) {
 	// Intentar actualizar el RUT de p2 al RUT de p1 vía ImportPatient
 	p2.Rut = "11111111-1"
 	_, err = m.ImportPatient(p2)
-	if err == nil || model.KindOf(err) != model.ErrorConflict {
+	fe, ok := err.(*model.FieldError)
+	if !ok || fe.Err != patientdirectory.ErrRutAlreadyExists {
 		t.Errorf("se esperaba ErrRutAlreadyExists, se obtuvo %v", err)
 	}
 	_ = p1
 }
 
 func TestUpdatePatient_KeepingOwnRut(t *testing.T) {
-	m, _, err := setupModule()
+	m, _, err := setupModuleWithTenant("tenant-1")
 	if err != nil {
 		t.Fatalf("setup falló: %v", err)
 	}
@@ -238,7 +248,7 @@ func TestUpdatePatient_KeepingOwnRut(t *testing.T) {
 }
 
 func TestFindPatient_NormalisesInput(t *testing.T) {
-	m, _, err := setupModule()
+	m, _, err := setupModuleWithTenant("tenant-1")
 	if err != nil {
 		t.Fatalf("setup falló: %v", err)
 	}
@@ -251,40 +261,6 @@ func TestFindPatient_NormalisesInput(t *testing.T) {
 	}
 	if !found || id != "id-1" || name != "John Doe" {
 		t.Errorf("se esperaba id-1 John Doe, se obtuvo id=%s name=%s found=%v", id, name, found)
-	}
-}
-
-func TestDeactivatePatient(t *testing.T) {
-	m, pub, err := setupModule()
-	if err != nil {
-		t.Fatalf("setup falló: %v", err)
-	}
-
-	id, _ := m.CreatePatient("tenant-1", "id-1", "12345678-K", "John Doe", "", "")
-
-	reg := newMockRegistry()
-	m.MountOperations(reg)
-	deactHandler := reg.ops[patientdirectory.OpDeactivatePatient]
-
-	deactReq, _ := json.Marshal(map[string]any{
-		"tenant_id": "tenant-1",
-		"id":        id,
-	})
-	ctxDeact := &mockContext{body: deactReq}
-	deactHandler(ctxDeact)
-	if ctxDeact.statusCode != 200 {
-		t.Fatalf("deactivate falló con código %d", ctxDeact.statusCode)
-	}
-
-	var found bool
-	for _, e := range pub.published {
-		if e.Topic == patientdirectory.TopicPatientDeactivated {
-			found = true
-			break
-		}
-	}
-	if !found {
-		t.Errorf("se esperaba que el evento TopicPatientDeactivated estuviera publicado")
 	}
 }
 

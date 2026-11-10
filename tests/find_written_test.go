@@ -4,8 +4,8 @@ import (
 	"testing"
 
 	patientdirectory "github.com/veltylabs/patient_directory"
-	trustedip "webtyp.com/auth/trusted_ip"
 	"webtyp.com/events/mock"
+	"webtyp.com/input"
 	"webtyp.com/model"
 	"webtyp.com/orm"
 	"webtyp.com/storage/mem"
@@ -16,7 +16,10 @@ import (
 // forma en que se escribe el mismo RUT encuentra al mismo paciente, y crearlo otra vez es rechazado.
 func TestFindPatient_AnyWayTheRutIsWritten(t *testing.T) {
 	m, err := patientdirectory.New(orm.New(mem.New()), patientdirectory.Deps{
-		Publisher: &mock.Broker{}, TenantID: "t1", ValidateRUT: trustedip.ValidateRUT,
+		Publisher:   &mock.Broker{},
+		TenantID:    "t1",
+		IDs:         &testIDGen{},
+		ValidateRUT: input.NormalizeRUT,
 	})
 	if err != nil {
 		t.Fatalf("New: %v", err)
@@ -29,7 +32,9 @@ func TestFindPatient_AnyWayTheRutIsWritten(t *testing.T) {
 		if err != nil || !found || id != "p1" {
 			t.Errorf("FindPatient(%q): id=%q found=%v err=%v", written, id, found, err)
 		}
-		if _, err := m.CreatePatient("t1", "dup"+string(rune('a'+i)), written, "Ana", "", ""); model.KindOf(err) != model.ErrorConflict {
+		_, err = m.CreatePatient("t1", "dup"+string(rune('a'+i)), written, "Ana", "", "")
+		fe, ok := err.(*model.FieldError)
+		if !ok || fe.Err != patientdirectory.ErrRutAlreadyExists {
 			t.Errorf("CreatePatient(%q) otra vez: se esperaba conflicto (ya existe), se obtuvo %v", written, err)
 		}
 	}

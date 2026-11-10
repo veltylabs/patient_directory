@@ -2,6 +2,7 @@ package migrate_test
 
 import (
 	"testing"
+	"webtyp.com/storage"
 
 	"webtyp.com/ddl"
 	"webtyp.com/model"
@@ -13,9 +14,9 @@ type dummyExecer struct {
 	queries []string
 }
 
-func (e *dummyExecer) Exec(query string, args ...any) error {
+func (e *dummyExecer) Exec(query string, args ...any) (storage.Result, error) {
 	e.queries = append(e.queries, query)
-	return nil
+	return storage.Affected(0), nil
 }
 
 type dummyCompiler struct{}

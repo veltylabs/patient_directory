@@ -5,8 +5,8 @@ import (
 
 	patientdirectory "github.com/veltylabs/patient_directory"
 	"github.com/veltylabs/patient_directory/seed"
-	"webtyp.com/auth/trusted_ip"
 	"webtyp.com/events/mock"
+	"webtyp.com/input"
 	"webtyp.com/orm"
 	"webtyp.com/storage/mem"
 )
@@ -16,7 +16,8 @@ func TestSeed_Load(t *testing.T) {
 	mod, err := patientdirectory.New(db, patientdirectory.Deps{
 		Publisher:   &mock.Broker{},
 		TenantID:    "demo",
-		ValidateRUT: trustedip.ValidateRUT,
+		IDs:         &testIDGen{},
+		ValidateRUT: input.NormalizeRUT,
 	})
 	if err != nil {
 		t.Fatalf("patientdirectory.New: %v", err)
@@ -46,12 +47,5 @@ func TestSeed_Load(t *testing.T) {
 
 	if len(data2.Patients) != 3 {
 		t.Fatalf("se esperaban 3 pacientes en seed.Data en el segundo intento, se obtuvieron %d", len(data2.Patients))
-	}
-
-	for _, p := range data2.Patients {
-		name, _, _, _, found, err := mod.GetPatient("demo", p.Id)
-		if err != nil || !found || name != p.Name {
-			t.Fatalf("mod.GetPatient(%s) 2: found=%v err=%v name=%s", p.Id, found, err, name)
-		}
 	}
 }

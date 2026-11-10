@@ -1,15 +1,15 @@
 package tests
 
 import (
-	"errors"
 	"testing"
+	"webtyp.com/model"
 
 	patientdirectory "github.com/veltylabs/patient_directory"
 	"github.com/veltylabs/patient_directory/kinds"
 )
 
 func TestGetPatient(t *testing.T) {
-	m, _, err := setupModule()
+	m, _, err := setupModuleWithTenant("t1")
 	if err != nil {
 		t.Fatalf("setup: %v", err)
 	}
@@ -43,7 +43,7 @@ func TestGetPatient(t *testing.T) {
 }
 
 func TestGetPatientMissing(t *testing.T) {
-	m, _, err := setupModule()
+	m, _, err := setupModuleWithTenant("t1")
 	if err != nil {
 		t.Fatalf("setup: %v", err)
 	}
@@ -71,7 +71,7 @@ func TestGetPatientMissing(t *testing.T) {
 }
 
 func TestFindPatient(t *testing.T) {
-	m, _, err := setupModule()
+	m, _, err := setupModuleWithTenant("t1")
 	if err != nil {
 		t.Fatalf("setup: %v", err)
 	}
@@ -97,7 +97,7 @@ func TestFindPatient(t *testing.T) {
 }
 
 func TestFindPatientMissing(t *testing.T) {
-	m, _, err := setupModule()
+	m, _, err := setupModuleWithTenant("t1")
 	if err != nil {
 		t.Fatalf("setup: %v", err)
 	}
@@ -108,7 +108,7 @@ func TestFindPatientMissing(t *testing.T) {
 }
 
 func TestCreatePatient(t *testing.T) {
-	m, _, err := setupModule()
+	m, _, err := setupModuleWithTenant("t1")
 	if err != nil {
 		t.Fatalf("setup: %v", err)
 	}
@@ -130,7 +130,7 @@ func TestCreatePatient(t *testing.T) {
 }
 
 func TestCreatePatientDuplicate(t *testing.T) {
-	m, _, err := setupModule()
+	m, _, err := setupModuleWithTenant("t1")
 	if err != nil {
 		t.Fatalf("setup: %v", err)
 	}
@@ -147,8 +147,8 @@ func TestCreatePatientDuplicate(t *testing.T) {
 	}
 
 	_, err = m.CreatePatient("t1", "p3", "12.345.678-5", "Ana 2", "", "")
-	if !errors.Is(err, patientdirectory.ErrRutAlreadyExists) {
+	fe, ok := err.(*model.FieldError)
+	if !ok || fe.Err != patientdirectory.ErrRutAlreadyExists {
 		t.Errorf("expected ErrRutAlreadyExists, got %v", err)
 	}
 }
-
