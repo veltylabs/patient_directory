@@ -4,7 +4,7 @@ go 1.26.8
 
 require (
 	webtyp.com/appkit v0.2.33
-	webtyp.com/crud v0.0.10
+	webtyp.com/crud v0.0.11
 	webtyp.com/ddl v0.0.49
 	webtyp.com/events v0.1.8
 	webtyp.com/fmt v1.0.0
@@ -56,5 +56,3 @@ require (
 	webtyp.com/user v0.3.14 // indirect
 	webtyp.com/webauthn v0.1.16 // indirect
 )
-
-replace webtyp.com/crud => /home/cesar/Dev/Project/webtyp/crud
